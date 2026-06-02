@@ -1,0 +1,46 @@
+<mat-card class="cardWithShadow theme-card">
+  <div class="p-6">
+    <mat-card-title>{{ isEditMode ? 'Editar categoría' : 'Crear categoría' }}</mat-card-title>
+  </div>
+  <mat-card-content class="border-t border-border">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="grid grid-cols-12 gap-x-6">
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="font-semibold mb-2 block">Nombre</mat-label>
+          <mat-form-field appearance="outline" class="w-full"><input matInput formControlName="name" /></mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="font-semibold mb-2 block">Categoría padre (opcional)</mat-label>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-select formControlName="id_parent_category">
+              <mat-option [value]="null">— Sin padre (categoría raíz) —</mat-option>
+              <mat-option *ngFor="let p of parentCategories" [value]="p.id_category">{{ p.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12">
+          <mat-label class="font-semibold mb-2 block">Descripción</mat-label>
+          <mat-form-field appearance="outline" class="w-full"><textarea matInput rows="3" formControlName="description"></textarea></mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="font-semibold mb-2 block">Estado</mat-label>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-select formControlName="status">
+              <mat-option value="active">Activo</mat-option>
+              <mat-option value="inactive">Inactivo</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="font-semibold mb-2 block">Imagen representativa</mat-label>
+          <input type="file" accept="image/*" (change)="onFileChange($event)" />
+          <img *ngIf="imagePreviewUrl" [src]="imagePreviewUrl" alt="Imagen" class="mt-2 max-h-24 rounded border border-border" />
+        </div>
+      </div>
+      <div class="mt-3 flex gap-2">
+        <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Guardar</button>
+        <button mat-flat-button color="warn" type="button" (click)="onCancel()">Cancelar</button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

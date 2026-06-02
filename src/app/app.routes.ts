@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { BlankComponent } from './layouts/blank/blank.component';
 import { FullComponent } from './layouts/full/full.component';
 import { AuthenticatedGuard } from './guards/authenticated.guard';
+import { AdminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -35,6 +36,12 @@ export const routes: Routes = [
         canActivateChild: [AuthenticatedGuard],
         loadChildren: () =>
           import('./pages/users/users.routes').then((m) => m.UserRoutes),
+      },
+      {
+        path: 'admin',
+        canActivateChild: [AuthenticatedGuard, AdminGuard],
+        loadChildren: () =>
+          import('./pages/admin/admin.routes').then((m) => m.AdminRoutes),
       }
     ],
   },

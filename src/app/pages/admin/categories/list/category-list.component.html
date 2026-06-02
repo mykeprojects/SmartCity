@@ -1,0 +1,41 @@
+<div class="flex justify-end mb-3 gap-2">
+  <button mat-flat-button color="primary" (click)="goCreate()">Crear categoría</button>
+</div>
+
+<p *ngIf="loading">Cargando categorías...</p>
+
+<div class="space-y-4" *ngIf="!loading">
+  <div *ngFor="let node of tree" class="cardWithShadow theme-card p-4">
+    <div class="flex items-start gap-4">
+      <img *ngIf="node.category.image_url" [src]="imageUrl(node.category.image_url)" alt="" class="w-16 h-16 object-cover rounded" />
+      <div class="flex-1">
+        <div class="flex justify-between items-center">
+          <div>
+            <span class="text-xs uppercase text-muted">Categoría</span>
+            <h3 class="font-semibold text-lg">{{ node.category.name }}</h3>
+            <p class="text-sm text-muted">{{ node.category.description || 'Sin descripción' }}</p>
+          </div>
+          <div class="flex gap-2">
+            <button mat-stroked-button color="primary" (click)="edit(node.category.id_category!)">Editar</button>
+            <button mat-stroked-button color="warn" (click)="remove(node.category)">Eliminar</button>
+          </div>
+        </div>
+
+        <div *ngIf="node.children.length" class="mt-4 pl-4 border-l-2 border-border space-y-3">
+          <div *ngFor="let child of node.children" class="flex items-start gap-3">
+            <img *ngIf="child.category.image_url" [src]="imageUrl(child.category.image_url)" alt="" class="w-12 h-12 object-cover rounded" />
+            <div class="flex-1">
+              <span class="text-xs uppercase text-muted">Subcategoría</span>
+              <p class="font-medium">{{ child.category.name }}</p>
+              <p class="text-sm text-muted">{{ child.category.description || '-' }}</p>
+            </div>
+            <div class="flex gap-2">
+              <button mat-stroked-button color="primary" (click)="edit(child.category.id_category!)">Editar</button>
+              <button mat-stroked-button color="warn" (click)="remove(child.category)">Eliminar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -11,6 +11,35 @@ export const navItems: NavItem[] = [
   },
 
   {
+    navCap: 'Administración Territorial',
+  },
+  {
+    displayName: 'Entidades',
+    iconName: 'solar:buildings-2-line-duotone',
+    route: '/admin/entities/list',
+  },
+  {
+    displayName: 'Funcionarios',
+    iconName: 'solar:user-id-line-duotone',
+    route: '/admin/officials/list',
+  },
+  {
+    displayName: 'Ciudadanos',
+    iconName: 'solar:users-group-rounded-line-duotone',
+    route: '/admin/citizens/list',
+  },
+  {
+    displayName: 'Categorías',
+    iconName: 'solar:tag-line-duotone',
+    route: '/admin/categories/list',
+  },
+  {
+    displayName: 'Comunas',
+    iconName: 'solar:map-point-line-duotone',
+    route: '/admin/communes/list',
+  },
+
+  {
     navCap: 'Ui Components',
   },
   {
