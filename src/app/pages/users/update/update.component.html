@@ -1,0 +1,8 @@
+@if (user) {
+<app-user-form 
+    [user]="user" 
+    (formSubmit)="onUpdate($event)">
+</app-user-form>
+} @else {
+<p>Cargando usuario...</p>
+}

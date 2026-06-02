@@ -1,0 +1,77 @@
+<!-- user-form.component.html -->
+<mat-card class="cardWithShadow theme-card">
+    <div class="p-6">
+        <mat-card-title class="mb-0">
+            {{ isEditMode ? 'Editar usuario' : 'Crear usuario' }}
+        </mat-card-title>
+    </div>
+
+    <mat-card-content class="border-t border-border">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <div class="grid grid-cols-12 gap-x-6">
+
+                <div class="col-span-12 lg:col-span-6">
+                    <mat-label class="font-semibold mb-2 block">Nombre</mat-label>
+                    <mat-form-field appearance="outline" class="w-full" color="primary">
+                        <input matInput formControlName="name" placeholder="Ingrese el nombre" />
+                        <mat-error [hidden]="!(f['name'].invalid && (f['name'].dirty || f['name'].touched))">
+                            <span [hidden]="!f['name'].hasError('required')">El nombre es obligatorio.</span>
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="col-span-12 lg:col-span-6">
+                    <mat-label class="font-semibold mb-2 block">Username</mat-label>
+                    <mat-form-field appearance="outline" class="w-full" color="primary">
+                        <input matInput formControlName="username" placeholder="Ingrese el username" />
+                        <mat-error [hidden]="!(f['username'].invalid && (f['username'].dirty || f['username'].touched))">
+                            <span [hidden]="!f['username'].hasError('required')">El username es obligatorio.</span>
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="col-span-12 lg:col-span-6">
+                    <mat-label class="font-semibold mb-2 block">Email</mat-label>
+                    <mat-form-field appearance="outline" class="w-full" color="primary">
+                        <input matInput formControlName="email" type="email" placeholder="correo@ejemplo.com" />
+                        <mat-error [hidden]="!(f['email'].invalid && (f['email'].dirty || f['email'].touched))">
+                            <span [hidden]="!f['email'].hasError('required')">El email es obligatorio.</span>
+                            <span [hidden]="!f['email'].hasError('email')">Ingrese un correo electrónico válido.</span>
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="col-span-12 lg:col-span-6">
+                    <mat-label class="font-semibold mb-2 block">Teléfono</mat-label>
+                    <mat-form-field appearance="outline" class="w-full" color="primary">
+                        <input matInput formControlName="phone" placeholder="Ingrese el teléfono" />
+                        <mat-error [hidden]="!(f['phone'].invalid && (f['phone'].dirty || f['phone'].touched))">
+                            <span [hidden]="!f['phone'].hasError('pattern')">Teléfono inválido. Use sólo números y opcionales + - ( ) (7-20 caracteres).</span>
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="col-span-12">
+                    <mat-label class="font-semibold mb-2 block">Sitio web</mat-label>
+                    <mat-form-field appearance="outline" class="w-full" color="primary">
+                        <input matInput formControlName="website" placeholder="www.ejemplo.com" />
+                        <mat-error [hidden]="!(f['website'].invalid && (f['website'].dirty || f['website'].touched))">
+                            <span [hidden]="!f['website'].hasError('pattern')">Sitio web inválido. Ingrese una URL válida (p. ej. https://www.ejemplo.com).</span>
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+            </div>
+
+            <div class="mt-3 flex gap-2">
+                <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid" class="w-36 flex justify-center items-center">
+                    {{ isEditMode ? 'Actualizar' : 'Crear' }}
+                </button>
+
+                <button mat-flat-button color="warn" type="button" (click)="onCancel()" class="w-36 flex justify-center items-center">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </mat-card-content>
+</mat-card>
