@@ -16,10 +16,10 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { AppSettings } from 'src/app/config';
-import { User } from 'src/app/models/user';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { SecurityService } from 'src/app/services/security.service';
 import { NotificationService } from 'src/app/services/notification.service';
+import { User } from '@angular/fire/auth';
 
 interface notifications {
   id: number;
@@ -74,7 +74,7 @@ export class HeaderComponent {
 
   ngOnInit(): void {
     this.userSubscription = this.securityService
-      .getCurrentUser()
+      .getUser()
       .subscribe((user) => {
         console.log('👤 Usuario actual en HeaderComponent:', user);
         this.user = user;

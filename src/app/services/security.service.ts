@@ -1,65 +1,70 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { tap, switchMap, catchError } from 'rxjs/operators';
-import { environment } from '../../environments/environments';
-import { User } from '../models/user';
-import { StorageService } from './storage/storage.service';
+import { Observable } from 'rxjs';
+import { Auth, authState } from '@angular/fire/auth';
+import {GithubAuthProvider,GoogleAuthProvider,OAuthProvider,signInWithPopup,signOut, User, signInWithEmailAndPassword} from 'firebase/auth';
+import { CookieService } from './cookie.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SecurityService {
-  private api = environment.apiUrl;
+  private firebaseUser$: Observable<User | null>;
 
-  private currentUserSubject = new BehaviorSubject<User | null>(null);
+  constructor(private auth: Auth, private cookieService: CookieService) {
+    this.firebaseUser$ = authState(this.auth);
 
-  private readonly storageKey = 'currentUser';
+    this.firebaseUser$.subscribe(async user => {
+      if (user) {
+        const token = await user.getIdToken();
 
-  constructor(private http: HttpClient, private storage: StorageService) {
-    // Al crear el servicio, intentar cargar usuario persistido
-    try {
-      const raw = this.storage.getItem(this.storageKey);
-      if (raw) {
-        const u: User = JSON.parse(raw);
-        this.currentUserSubject.next(u);
+        this.cookieService.setCookie(
+          'firebaseToken',
+          token,
+          3600
+        );
+      } else {
+        this.cookieService.deleteCookie('firebaseToken');
       }
-    } catch (e) {
-      // ignore parse errors
-      console.warn('Failed to load user from localStorage', e);
-    }
+    });
+  }
+  loginWithEmail(email: string, password: string) {
+    return signInWithEmailAndPassword(this.auth, email, password)
+      .then(async result => {
+
+        const token = await result.user.getIdToken();
+        this.cookieService.setCookie('firebaseToken', token, 3600);
+
+        return result;
+      });
   }
 
-  /**
-   * Este método realiza el proceso de login:
-   * 1. Envía las credenciales al backend para autenticación.
-   * 2. Si el login es exitoso, llama a /me para obtener los datos del usuario actual.
-   * 3. Actualiza el estado del usuario en el servicio y lo persiste en storage.
-   * Es importante que el backend esté configurado para manejar sesiones (por ejemplo, con cookies)
-   * y que el endpoint /me valide la sesión y devuelva el usuario correspondiente.
-   * @param user 
-   * @returns 
-   */
+  loginWithGithub() {
+    const provider = new GithubAuthProvider();
+    return signInWithPopup(this.auth, provider).then(async result => {
 
+      const token = await result.user.getIdToken();
+      this.cookieService.setCookie("firebaseToken",token,3600)
+      return result;
+    });
+  }
 
-  login(user: User): Observable<any> {
-    const url = `${this.api}/api/auth/login`;
-    return this.http.post<any>(url, user, { withCredentials: true }).pipe(
-      tap(() => console.log('✅ Login exitoso, llamando /me...')),
-      switchMap(() =>
-        this.me().pipe(
-          tap((u) => {
-            console.log('✅ /me respondió:', u);
-            this.setUser(u);
-          }),
-          catchError((err) => {
-            console.error('❌ /me falló:', err.status, err.error);
-            this.setUser(null);
-            return of(null);
-          })
-        )
-      )
-    );
+  loginWithGoogle() {
+    const provider = new GoogleAuthProvider();
+    return signInWithPopup(this.auth, provider).then(async result => {
+
+      const token = await result.user.getIdToken();
+      this.cookieService.setCookie("firebaseToken",token,3600)
+
+      return result});
+  }
+  loginWithMicrosoft() {
+    const provider = new OAuthProvider('microsoft.com');
+    return signInWithPopup(this.auth, provider).then(async result => {
+
+      const token = await result.user.getIdToken();
+      this.cookieService.setCookie("firebaseToken",token,3600)
+
+      return result});
   }
 
   /**
@@ -69,11 +74,10 @@ export class SecurityService {
    * Es importante que el backend maneje correctamente la invalidación de la sesión (por ejemplo, eliminando la cookie).
    * @returns 
    */
-  logout(): Observable<any> {
-    const url = `${this.api}/api/auth/logout`;
-    return this.http.post(url, {}, { withCredentials: true }).pipe(
-      tap(() => this.clearUser())
-    );
+  logout() {
+    return signOut(this.auth).then(() => {
+      this.cookieService.deleteCookie('firebaseToken');
+    });
   }
 
   /**
@@ -85,51 +89,7 @@ export class SecurityService {
    * @returns 
    */
 
-  me(): Observable<User> {
-    const url = `${this.api}/api/auth/me`;
-    return this.http.get<User>(url, { withCredentials: true });
-  }
-
-  /** Devuelve el observable público del usuario actual */
-  public getCurrentUser(): Observable<User | null> {
-    return this.currentUserSubject.asObservable();
-  }
-
-  /**
-   * Actualiza el estado del usuario actual en el servicio y lo persiste en storage.
-   * Este método se llama después de un login exitoso para establecer el usuario actual,
-   * o después de un logout para limpiar el usuario.
-   * Es importante no almacenar la contraseña en el storage por razones de seguridad.
-   * @param user 
-   */
-
-  setUser(user: User | null) {
-    console.log('🔐 Estableciendo usuario actual:', user);
-    this.currentUserSubject.next(user);
-    // Persistir en storage (no almacenar password)
-    // Si no guardo al usuario en local storage, cada vez que recargue la página 
-    // se perderá la información del usuario actual
-    try {
-      if (user) {
-        const copy: any = { ...user };
-        if ('password' in copy) delete copy.password;
-        this.storage.setItem(this.storageKey, JSON.stringify(copy));
-      } else {
-        this.storage.removeItem(this.storageKey);
-      }
-    } catch (e) {
-      console.warn('Failed to persist user to storage', e);
-    }
-  }
-
-  clearUser() {
-    this.currentUserSubject.next(null);
-    try {
-      this.storage.removeItem(this.storageKey);
-    } catch (e) {
-      console.warn('Failed to remove user from storage', e);
-    }
+  getUser(): Observable<User | null> {
+    return this.firebaseUser$;
   }
 }
-
-

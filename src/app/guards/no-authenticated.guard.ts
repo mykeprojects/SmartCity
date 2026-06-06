@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, Router, RouterStateSnapshot } from '@angular/router';
-import { of } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { SecurityService } from '../services/security.service';
 
 @Injectable({
@@ -14,15 +13,14 @@ export class NoAuthenticatedGuard implements  CanActivateChild {
   ) {}
 
   canActivateChild(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-    return this.securityService.me().pipe(
-      tap((user) => this.securityService.setUser(user)),
-      map((user) => !user),
-      catchError(() => {
-        this.router.navigate(['/authentication/login']);
-        this.securityService.clearUser();
-        return of(true);
-      })
-    );
+    console.log("Autenticación verificando")
+    return this.securityService.getUser().pipe(
+      take(1),
+      map(user=>
+        user? this.router.createUrlTree(['/dashboard'])
+            : true
+      )
+    )
   }
 
 }
