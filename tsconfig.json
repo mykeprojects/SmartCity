@@ -19,7 +19,9 @@
     "target": "ES2022",
     "module": "ES2022",
     "useDefineForClassFields": false,
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
+    "skipLibCheck": true,
+    "allowUmdGlobalAccess": true
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
