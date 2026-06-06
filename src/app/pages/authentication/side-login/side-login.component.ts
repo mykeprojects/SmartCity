@@ -6,8 +6,6 @@ import { MaterialModule } from 'src/app/material.module';
 import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { SecurityService } from '../../../services/security.service';
-import { User } from '../../../models/user';
-import { github, google, microsoft, auth} from '../../../../firebaseConfig';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -29,10 +27,6 @@ export class AppSideLoginComponent {
   get f() {
     return this.form.controls;
   }
-  
-  githubLogin(){
-    github
-  }
 
   submit() {
     if (this.form.invalid) {
@@ -43,25 +37,71 @@ export class AppSideLoginComponent {
     this.error = null;
     this.loading = true;
 
-    const user: User = {
-      email: this.f.email.value ?? undefined,
-      password: this.f.password.value ?? undefined,
-    };
+    const email = this.f.email.value!;
+    const password = this.f.password.value!;
 
-    this.security.login(user).subscribe({
-      next: () => {
-        this.loading = false;
-        this.router.navigate(['']);
-      },
-      error: (err) => {
-        this.loading = false;
-        this.error = err?.error?.message || '';
-        Swal.fire({
-          icon: 'error',
-          title: 'Login Failed',
-          text: "Usuario o contraseña incorrectos. Por favor, inténtalo de nuevo.",
-        });
-      }
+  this.security.loginWithEmail(email, password)
+    .then(() => {
+      this.loading = false;
+      this.router.navigate(['']);
+    })
+    .catch(err => {
+      this.loading = false;
+      this.error = err?.message;
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: 'Usuario o contraseña incorrectos. Por favor, inténtalo de nuevo.',
+      });
+    });
+  }
+  loginWithGithub(){
+    this.security.loginWithGithub().then(() => {
+      this.loading = false;
+      this.router.navigate(['']);
+    })
+    .catch(err => {
+      this.loading = false;
+      this.error = err?.message;
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: 'Ha ocurrido un error durante la autenticación con GitHub. Por favor, inténtalo de nuevo.',
+      });
+    });
+  }
+  loginWithMicrosoft(){
+    this.security.loginWithMicrosoft().then(() => {
+      this.loading = false;
+      this.router.navigate(['']);
+    })
+    .catch(err => {
+      this.loading = false;
+      this.error = err?.message;
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: 'Ha ocurrido un error durante la autenticación con Microsoft. Por favor, inténtalo de nuevo.',
+      });
+    });
+  }
+  loginWithGoogle(){
+    this.security.loginWithGoogle().then(() => {
+      this.loading = false;
+      this.router.navigate(['']);
+    })
+    .catch(err => {
+      this.loading = false;
+      this.error = err?.message;
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: 'Ha ocurrido un error durante la autenticación con Google. Por favor, inténtalo de nuevo.',
+      });
     });
   }
 }

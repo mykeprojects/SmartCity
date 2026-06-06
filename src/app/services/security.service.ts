@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Auth, authState } from '@angular/fire/auth';
-import {GithubAuthProvider,GoogleAuthProvider,OAuthProvider,signInWithPopup,signOut, User} from 'firebase/auth';
+import {GithubAuthProvider,GoogleAuthProvider,OAuthProvider,signInWithPopup,signOut, User, signInWithEmailAndPassword} from 'firebase/auth';
 import { CookieService } from './cookie.service';
 
 @Injectable({
@@ -26,6 +26,16 @@ export class SecurityService {
         this.cookieService.deleteCookie('firebaseToken');
       }
     });
+  }
+  loginWithEmail(email: string, password: string) {
+    return signInWithEmailAndPassword(this.auth, email, password)
+      .then(async result => {
+
+        const token = await result.user.getIdToken();
+        this.cookieService.setCookie('firebaseToken', token, 3600);
+
+        return result;
+      });
   }
 
   loginWithGithub() {
