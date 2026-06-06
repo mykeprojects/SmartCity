@@ -17,8 +17,8 @@ export class NoAuthenticatedGuard implements  CanActivateChild {
     return this.securityService.getUser().pipe(
       take(1),
       map(user=>
-        user? true
-            : this.router.createUrlTree(['/authentication/login'])
+        user? this.router.createUrlTree(['/dashboard'])
+            : true
       )
     )
   }

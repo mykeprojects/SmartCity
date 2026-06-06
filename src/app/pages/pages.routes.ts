@@ -24,6 +24,6 @@ export const PagesRoutes: Routes = [
   {
     path: 'login',
     component: AppSideLoginComponent,
-    canActivate: [NoAuthenticatedGuard],
+    canActivateChild: [NoAuthenticatedGuard],
   },
 ];
