@@ -16,7 +16,7 @@ import { HeaderComponent } from './header/header.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { AppNavItemComponent } from './sidebar/nav-item/nav-item.component';
 import { navItems } from './sidebar/sidebar-data';
-import { User } from 'src/app/models/user';
+import { User } from '@angular/fire/auth';
 import { SecurityService } from 'src/app/services/security.service';
 
 const MOBILE_VIEW = 'screen and (max-width: 768px)';
@@ -230,7 +230,7 @@ export class FullComponent implements OnInit {
 
   ngOnInit(): void {
     this.userSubscription = this.securityService
-      .getCurrentUser()
+      .getUser()
       .subscribe((user) => {
         console.log('👤 Usuario actual en HeaderComponent:', user);
         this.user = user;
