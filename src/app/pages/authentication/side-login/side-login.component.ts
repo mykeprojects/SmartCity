@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { SecurityService } from '../../../services/security.service';
 import { User } from '../../../models/user';
+import { github, google, microsoft, auth} from '../../../../firebaseConfig';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -27,6 +28,10 @@ export class AppSideLoginComponent {
 
   get f() {
     return this.form.controls;
+  }
+  
+  githubLogin(){
+    github
   }
 
   submit() {

@@ -28,6 +28,11 @@ import { NgScrollbarModule } from 'ngx-scrollbar';
 //Import all material modules
 import { MaterialModule } from './material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { environment } from '../environments/environments';
+import { provideFirebaseApp,} from '@angular/fire/app';
+import { provideAuth, } from '@angular/fire/auth';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -55,5 +60,18 @@ export const appConfig: ApplicationConfig = {
       prefix: './assets/i18n/',
       suffix: '.json'
     }),
+    provideFirebaseApp(()=>
+      initializeApp({
+        apiKey: environment.firebase_key,
+        authDomain: "security-2025-02.firebaseapp.com",
+        projectId: "security-2025-02",
+        storageBucket: "security-2025-02.firebasestorage.app",
+        messagingSenderId: "675694347977",
+        appId: "1:675694347977:web:2b39e2f8740ec17761af18",
+        measurementId: "G-KNWTQS3NEN",
+
+      })
+    ),
+      provideAuth(() => getAuth()),
   ],
 };
