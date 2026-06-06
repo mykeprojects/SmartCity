@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Auth, authState } from '@angular/fire/auth';
 import {GithubAuthProvider,GoogleAuthProvider,OAuthProvider,signInWithPopup,signOut, User} from 'firebase/auth';
 import { CookieService } from './cookie.service';
@@ -8,7 +8,7 @@ import { CookieService } from './cookie.service';
   providedIn: 'root',
 })
 export class SecurityService {
-  firebaseUser$: Observable<User | null>;
+  private firebaseUser$: Observable<User | null>;
 
   constructor(private auth: Auth, private cookieService: CookieService) {
     this.firebaseUser$ = authState(this.auth);
@@ -79,8 +79,7 @@ export class SecurityService {
    * @returns 
    */
 
-  /** Devuelve el observable público del usuario actual */
-  getCurrentUser() {
-    return this.auth.currentUser;
+  getUser(): Observable<User | null> {
+    return this.firebaseUser$;
   }
 }
