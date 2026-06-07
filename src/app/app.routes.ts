@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { BlankComponent } from './layouts/blank/blank.component';
 import { FullComponent } from './layouts/full/full.component';
 import { AuthenticatedGuard } from './guards/authenticated.guard';
+import { GenerateReport } from './pages/reports/generate-report';
 import { NoAuthenticatedGuard } from './guards/no-authenticated.guard';
 
 export const routes: Routes = [
@@ -40,6 +41,16 @@ export const routes: Routes = [
         canActivateChild: [AuthenticatedGuard],
         loadChildren: () =>
           import('./pages/users/users.routes').then((m) => m.UserRoutes),
+      },
+      {
+        path: 'reports',
+        canActivateChild: [AuthenticatedGuard],
+        children: [
+          {
+            path: '',
+            component: GenerateReport,
+          },
+        ],
       }
     ],
   },

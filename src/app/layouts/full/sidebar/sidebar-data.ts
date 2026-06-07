@@ -2,6 +2,11 @@ import { NavItem } from './nav-item/nav-item';
 
 export const navItems: NavItem[] = [
   {
+    displayName: 'Reportes',
+    iconName: 'lucide:chart-line',
+    route: '/reports',
+  },
+  {
     navCap: 'Home',
   },
   {
@@ -51,6 +56,11 @@ export const navItems: NavItem[] = [
     displayName: 'Tables',
     iconName: 'solar:tablet-line-duotone',
     route: '/ui-components/tables',
+  },
+  {
+    displayName: 'Reports',
+    iconName: 'solar:chart-line-duotone',
+    route: '/reports',
   },
 
   {
