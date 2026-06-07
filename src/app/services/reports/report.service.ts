@@ -14,6 +14,8 @@ export class ReportsService {
   constructor(private http: HttpClient) {}
 
   getReport(query: string): Observable<Report> {
-    return this.http.post<Report>(this.apiUrl, query);
+    return this.http.post<Report>(this.apiUrl, {
+      query: query
+    });
   }
 }

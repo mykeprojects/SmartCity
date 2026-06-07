@@ -10,14 +10,47 @@
     />
 
     <button
+    type="button"
     (click)="sendPrompt()"
     class="rounded-lg bg-blue-600 px-4 py-2 text-white"
     >
     Enviar
     </button>
   </div>
+  @if (loading) {
+    <div class="flex flex-col items-center justify-center h-[500px] gap-3">
+      
+      <!-- spinner -->
+      <div class="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
 
-  <!-- Componente importado -->
-  <simple-pie [report]="report"></simple-pie>
+      <p class="text-blue-600 font-medium">
+        Generando reporte...
+      </p>
+
+    </div>
+  }
+
+  @else if (report) {
+    <app-chart [report]="report"></app-chart>
+  }
+  @else {
+    <div class="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-blue-700 shadow-sm ">
+    
+      <!-- Icono -->
+      <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M13 16h-1v-4h-1m1-4h.01M12 18a6 6 0 100-12 6 6 0 000 12z" />
+      </svg>
+
+      <!-- Texto -->
+      <div>
+        <p class="font-medium">No hay reporte aún</p>
+        <p class="text-sm text-blue-600">
+          Escribe un prompt y presiona “Enviar” para generar el análisis.
+        </p>
+      </div>
+
+    </div>
+  }
 
 </div>

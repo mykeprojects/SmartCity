@@ -1,5 +1,5 @@
 export interface Report{
-    type?: String,
+    type: String,
     labels?: String[],
     series?: number[],
 }
