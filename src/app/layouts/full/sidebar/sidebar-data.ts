@@ -7,6 +7,11 @@ export const navItems: NavItem[] = [
     route: '/reports',
   },
   {
+    displayName: 'Mapa',
+    iconName: 'material-symbols:map-outline',
+    route: '/map/overview',
+  },
+  {
     navCap: 'Home',
   },
   {
