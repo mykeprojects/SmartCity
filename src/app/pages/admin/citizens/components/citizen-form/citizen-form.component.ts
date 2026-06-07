@@ -32,8 +32,8 @@ export class CitizenFormComponent implements OnInit {
 
   form!: FormGroup;
   isEditMode = false;
-  latitude?: number;
-  longitude?: number;
+  latitude = 5.0703;
+  longitude = -75.5138;
 
   get f() {
     return this.form.controls;
@@ -47,10 +47,10 @@ export class CitizenFormComponent implements OnInit {
     this.longitude = this.citizen?.longitude ?? -75.5138;
 
     this.form = this.fb.group({
-      name: [this.citizen?.name ?? '', Validators.required],
+      name: [this.citizen?.name ?? '', [Validators.required, Validators.maxLength(160)]],
       email: [this.citizen?.email ?? '', [Validators.required, Validators.email]],
-      phone: [this.citizen?.phone ?? ''],
-      address: [this.citizen?.address ?? ''],
+      phone: [this.citizen?.phone ?? '', [Validators.maxLength(40)]],
+      address: [this.citizen?.address ?? '', [Validators.maxLength(255)]],
       status: [this.citizen?.status ?? 'active', Validators.required],
       latitude: [this.latitude, Validators.required],
       longitude: [this.longitude, Validators.required],
@@ -64,8 +64,20 @@ export class CitizenFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.form.invalid) return;
-    this.formSubmit.emit(this.form.value);
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const value = { ...this.form.getRawValue() };
+    value.name = (value.name as string)?.trim();
+    value.email = (value.email as string)?.trim();
+    value.phone = (value.phone as string)?.trim();
+    value.address = (value.address as string)?.trim();
+    value.latitude = Number(value.latitude);
+    value.longitude = Number(value.longitude);
+
+    this.formSubmit.emit(value);
   }
 
   onCancel(): void {

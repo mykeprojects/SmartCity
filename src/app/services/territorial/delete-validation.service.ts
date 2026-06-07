@@ -4,6 +4,7 @@ import { catchError, map } from 'rxjs/operators';
 
 import { OfficialService } from './official.service';
 import { InterestedPartyService } from './interested-party.service';
+import { AnnotationService } from './annotation.service';
 
 export interface DeleteCheckResult {
   canDelete: boolean;
@@ -14,7 +15,8 @@ export interface DeleteCheckResult {
 export class DeleteValidationService {
   constructor(
     private officialService: OfficialService,
-    private interestedPartyService: InterestedPartyService
+    private interestedPartyService: InterestedPartyService,
+    private annotationService: AnnotationService
   ) {}
 
   checkEntityDeletion(entityId: number): Observable<DeleteCheckResult> {
@@ -52,5 +54,22 @@ export class DeleteValidationService {
    */
   checkOfficialDeletion(): Observable<DeleteCheckResult> {
     return of({ canDelete: true, blockers: [] });
+  }
+
+  checkCitizenDeletion(citizenId: number): Observable<DeleteCheckResult> {
+    return this.annotationService.search(1, 1, { id_citizen: String(citizenId) }).pipe(
+      map((resp) => {
+        const annotationCount = resp.totalItems ?? 0;
+        const blockers =
+          annotationCount > 0 ? [`${annotationCount} anotación(es) asociada(s)`] : [];
+        return { canDelete: blockers.length === 0, blockers };
+      }),
+      catchError(() =>
+        of({
+          canDelete: false,
+          blockers: ['No se pudieron verificar las dependencias del ciudadano.'],
+        })
+      )
+    );
   }
 }

@@ -1,6 +1,41 @@
-<div class="flex justify-end mb-3">
-  <button mat-flat-button color="primary" (click)="goCreate()">Registrar ciudadano</button>
-</div>
+<mat-card class="cardWithShadow theme-card mb-4">
+  <div class="p-6 flex flex-wrap items-center justify-between gap-3">
+    <mat-card-title class="mb-0">Gestión de ciudadanos</mat-card-title>
+    <button mat-flat-button color="primary" (click)="goCreate()">Registrar ciudadano</button>
+  </div>
+</mat-card>
+
+<mat-card class="cardWithShadow theme-card mb-4" *ngIf="mapMarkers.length > 0">
+  <div class="p-6 border-b border-border">
+    <mat-card-title class="mb-1">Mapa de ciudadanos</mat-card-title>
+    <p class="text-sm text-muted m-0">Ubicaciones de los ciudadanos en la página actual.</p>
+  </div>
+  <mat-card-content class="p-6">
+    <app-map-picker [markers]="mapMarkers" [readonly]="true" height="360px"></app-map-picker>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow theme-card mb-4">
+  <mat-card-content class="p-6">
+    <div class="grid grid-cols-12 gap-4 items-end">
+      <div class="col-span-12 md:col-span-8">
+        <mat-label class="font-semibold mb-2 block">Buscar por nombre</mat-label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            matInput
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="onSearch()"
+            placeholder="Nombre del ciudadano" />
+        </mat-form-field>
+      </div>
+      <div class="col-span-12 md:col-span-4 flex gap-2">
+        <button mat-flat-button color="primary" (click)="onSearch()">Buscar</button>
+        <button mat-stroked-button (click)="clearSearch()">Limpiar</button>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
 <app-dynamic-table
   [data]="citizens"
   [columns]="columns"

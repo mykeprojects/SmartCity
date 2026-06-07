@@ -20,7 +20,7 @@ export class CitizenCreateComponent {
         showSuccess('Registrado', 'Ciudadano creado correctamente.');
         this.router.navigate(['/admin/citizens/list']);
       },
-      error: (err) => showApiError(err),
+      error: (err) => showApiError(err, 'No se pudo registrar el ciudadano. Verifique que el correo no esté en uso.'),
     });
   }
 }

@@ -26,6 +26,16 @@ export class CitizenService {
     return this.http.get<Citizen>(`${this.apiUrl}/${id}`);
   }
 
+  search(
+    page: number,
+    pageSize: number,
+    filters: Record<string, string>
+  ): Observable<PagedResponse<Citizen>> {
+    return this.http.get<PagedResponse<Citizen>>(`${this.apiUrl}/search`, {
+      params: buildPagedParams(page, pageSize, filters),
+    });
+  }
+
   create(citizen: Partial<Citizen>): Observable<Citizen> {
     return this.http.post<Citizen>(this.apiUrl, citizen);
   }

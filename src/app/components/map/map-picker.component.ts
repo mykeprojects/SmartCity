@@ -1,12 +1,14 @@
 import {
   AfterViewInit,
   Component,
+  ElementRef,
   EventEmitter,
   Input,
   OnChanges,
   OnDestroy,
   Output,
   SimpleChanges,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
@@ -14,6 +16,10 @@ import * as L from 'leaflet';
 export interface MapLocation {
   latitude: number;
   longitude: number;
+}
+
+export interface MapMarker extends MapLocation {
+  label?: string;
 }
 
 @Component({
@@ -24,37 +30,52 @@ export interface MapLocation {
   styleUrl: './map-picker.component.scss',
 })
 export class MapPickerComponent implements AfterViewInit, OnChanges, OnDestroy {
+  @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef<HTMLDivElement>;
+
   @Input() latitude?: number;
   @Input() longitude?: number;
+  @Input() markers: MapMarker[] = [];
   @Input() readonly = false;
   @Input() height = '320px';
   @Output() locationChange = new EventEmitter<MapLocation>();
 
   private map?: L.Map;
   private marker?: L.Marker;
+  private markerLayer?: L.LayerGroup;
+  private resizeObserver?: ResizeObserver;
 
   private readonly defaultLat = 5.0703;
   private readonly defaultLng = -75.5138;
 
   ngAfterViewInit(): void {
     this.initMap();
+    this.observeResize();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.map && (changes['latitude'] || changes['longitude'])) {
-      this.syncMarker();
+    if (!this.map) return;
+
+    if (changes['markers']) {
+      this.renderMarkers();
+      return;
+    }
+
+    if (changes['latitude'] || changes['longitude']) {
+      this.syncSingleMarker();
     }
   }
 
   ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
     this.map?.remove();
   }
 
   private initMap(): void {
-    const lat = this.latitude ?? this.defaultLat;
-    const lng = this.longitude ?? this.defaultLng;
+    const hasMultiMarkers = this.markers.length > 0;
+    const lat = this.latitude ?? this.markers[0]?.latitude ?? this.defaultLat;
+    const lng = this.longitude ?? this.markers[0]?.longitude ?? this.defaultLng;
 
-    this.map = L.map('territorial-map', {
+    this.map = L.map(this.mapContainer.nativeElement, {
       center: [lat, lng],
       zoom: 14,
     });
@@ -63,29 +84,59 @@ export class MapPickerComponent implements AfterViewInit, OnChanges, OnDestroy {
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(this.map);
 
-    const icon = L.icon({
-      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-    });
+    const icon = this.createMarkerIcon();
 
-    this.marker = L.marker([lat, lng], { draggable: !this.readonly, icon }).addTo(this.map);
-
-    if (!this.readonly) {
-      this.map.on('click', (e: L.LeafletMouseEvent) => this.setPosition(e.latlng.lat, e.latlng.lng));
-      this.marker.on('dragend', () => {
-        const pos = this.marker!.getLatLng();
-        this.emitLocation(pos.lat, pos.lng);
-      });
+    if (hasMultiMarkers) {
+      this.renderMarkers();
+    } else {
+      this.marker = L.marker([lat, lng], { draggable: !this.readonly, icon }).addTo(this.map);
+      this.bindSingleMarkerEvents();
     }
 
-    setTimeout(() => this.map?.invalidateSize(), 200);
+    setTimeout(() => this.map?.invalidateSize(), 250);
   }
 
-  private syncMarker(): void {
-    if (!this.map || this.latitude == null || this.longitude == null) {
+  private renderMarkers(): void {
+    if (!this.map) return;
+
+    this.marker?.remove();
+    this.marker = undefined;
+    this.markerLayer?.clearLayers();
+    this.markerLayer?.remove();
+    this.markerLayer = L.layerGroup().addTo(this.map);
+
+    const icon = this.createMarkerIcon();
+    const bounds: L.LatLngTuple[] = [];
+
+    this.markers.forEach((item) => {
+      if (item.latitude == null || item.longitude == null) return;
+      const marker = L.marker([item.latitude, item.longitude], { icon });
+      if (item.label) {
+        marker.bindPopup(item.label);
+      }
+      marker.addTo(this.markerLayer!);
+      bounds.push([item.latitude, item.longitude]);
+    });
+
+    if (bounds.length > 1) {
+      this.map.fitBounds(L.latLngBounds(bounds), { padding: [24, 24] });
+    } else if (bounds.length === 1) {
+      this.map.setView(bounds[0], 14);
+    }
+  }
+
+  private bindSingleMarkerEvents(): void {
+    if (!this.map || !this.marker || this.readonly) return;
+
+    this.map.on('click', (e: L.LeafletMouseEvent) => this.setPosition(e.latlng.lat, e.latlng.lng));
+    this.marker.on('dragend', () => {
+      const pos = this.marker!.getLatLng();
+      this.emitLocation(pos.lat, pos.lng);
+    });
+  }
+
+  private syncSingleMarker(): void {
+    if (!this.map || this.markers.length > 0 || this.latitude == null || this.longitude == null) {
       return;
     }
     this.setPosition(this.latitude, this.longitude, false);
@@ -101,5 +152,21 @@ export class MapPickerComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   private emitLocation(lat: number, lng: number): void {
     this.locationChange.emit({ latitude: lat, longitude: lng });
+  }
+
+  private observeResize(): void {
+    if (typeof ResizeObserver === 'undefined') return;
+    this.resizeObserver = new ResizeObserver(() => this.map?.invalidateSize());
+    this.resizeObserver.observe(this.mapContainer.nativeElement);
+  }
+
+  private createMarkerIcon(): L.Icon {
+    return L.icon({
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+    });
   }
 }

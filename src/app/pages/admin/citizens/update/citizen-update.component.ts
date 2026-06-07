@@ -38,10 +38,10 @@ export class CitizenUpdateComponent implements OnInit {
   onUpdate(data: Partial<Citizen>): void {
     this.citizenService.update(this.id, data).subscribe({
       next: () => {
-        showSuccess('Actualizado');
+        showSuccess('Actualizado', 'Ciudadano actualizado correctamente.');
         this.router.navigate(['/admin/citizens/list']);
       },
-      error: (err) => showApiError(err),
+      error: (err) => showApiError(err, 'No se pudo actualizar el ciudadano.'),
     });
   }
 }

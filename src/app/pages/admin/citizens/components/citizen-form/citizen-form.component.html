@@ -1,21 +1,30 @@
 <mat-card class="cardWithShadow theme-card">
   <div class="p-6">
-    <mat-card-title>{{ isEditMode ? 'Editar ciudadano' : 'Registrar ciudadano' }}</mat-card-title>
+    <mat-card-title class="mb-0">{{ isEditMode ? 'Editar ciudadano' : 'Registrar ciudadano' }}</mat-card-title>
+    <p class="text-sm text-muted mt-2 mb-0">
+      Coloque un pin en el mapa para registrar la ubicación del ciudadano.
+    </p>
   </div>
   <mat-card-content class="border-t border-border">
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <div class="grid grid-cols-12 gap-x-6">
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="font-semibold mb-2 block">Nombre</mat-label>
-          <mat-form-field appearance="outline" class="w-full"><input matInput formControlName="name" /></mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <input matInput formControlName="name" />
+          </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="font-semibold mb-2 block">Correo</mat-label>
-          <mat-form-field appearance="outline" class="w-full"><input matInput type="email" formControlName="email" /></mat-form-field>
+          <mat-label class="font-semibold mb-2 block">Correo electrónico</mat-label>
+          <mat-form-field appearance="outline" class="w-full">
+            <input matInput type="email" formControlName="email" />
+          </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="font-semibold mb-2 block">Celular</mat-label>
-          <mat-form-field appearance="outline" class="w-full"><input matInput formControlName="phone" /></mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <input matInput formControlName="phone" />
+          </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="font-semibold mb-2 block">Estado</mat-label>
@@ -28,16 +37,20 @@
         </div>
         <div class="col-span-12">
           <mat-label class="font-semibold mb-2 block">Dirección (referencia)</mat-label>
-          <mat-form-field appearance="outline" class="w-full"><input matInput formControlName="address" placeholder="Ej: Cra 23 # 62-15" /></mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <input matInput formControlName="address" placeholder="Ej: Cra 23 # 62-15, Manizales" />
+          </mat-form-field>
         </div>
         <div class="col-span-12">
-          <mat-label class="font-semibold mb-2 block">Ubicación geográfica</mat-label>
+          <mat-label class="font-semibold mb-2 block">Ubicación en el mapa</mat-label>
           <app-map-picker
             [latitude]="latitude"
             [longitude]="longitude"
             (locationChange)="onLocationChange($event)">
           </app-map-picker>
-          <p class="text-sm mt-2">Lat: {{ form.value.latitude | number:'1.5-5' }} · Lng: {{ form.value.longitude | number:'1.5-5' }}</p>
+          <p class="text-sm mt-2 text-muted">
+            Coordenadas: {{ form.value.latitude | number:'1.5-5' }}, {{ form.value.longitude | number:'1.5-5' }}
+          </p>
         </div>
       </div>
       <div class="mt-3 flex gap-2">

@@ -1,0 +1,39 @@
+<mat-card class="cardWithShadow theme-card" *ngIf="citizen; else loadingTpl">
+  <div class="p-6 flex flex-wrap items-center justify-between gap-3 border-b border-border">
+    <mat-card-title class="mb-0">Detalle del ciudadano</mat-card-title>
+    <div class="flex gap-2 flex-wrap">
+      <button mat-flat-button color="accent" (click)="edit()">Editar</button>
+      <button mat-stroked-button (click)="back()">Volver</button>
+    </div>
+  </div>
+
+  <mat-card-content class="p-6">
+    <div class="grid grid-cols-12 gap-4 mb-6">
+      <div class="col-span-12 md:col-span-6">
+        <p><span class="font-semibold">Nombre:</span> {{ citizen.name }}</p>
+        <p><span class="font-semibold">Correo:</span> {{ citizen.email }}</p>
+        <p><span class="font-semibold">Celular:</span> {{ citizen.phone || '-' }}</p>
+      </div>
+      <div class="col-span-12 md:col-span-6">
+        <p><span class="font-semibold">Dirección:</span> {{ citizen.address || '-' }}</p>
+        <p><span class="font-semibold">Estado:</span> {{ statusLabel }}</p>
+        <p>
+          <span class="font-semibold">Coordenadas:</span>
+          {{ citizen.latitude | number:'1.5-5' }}, {{ citizen.longitude | number:'1.5-5' }}
+        </p>
+      </div>
+    </div>
+
+    <p class="font-semibold mb-2">Ubicación en el mapa</p>
+    <app-map-picker
+      [latitude]="citizen.latitude"
+      [longitude]="citizen.longitude"
+      [readonly]="true"
+      height="360px">
+    </app-map-picker>
+  </mat-card-content>
+</mat-card>
+
+<ng-template #loadingTpl>
+  <p>Cargando ciudadano...</p>
+</ng-template>
