@@ -38,10 +38,10 @@ export class CategoryUpdateComponent implements OnInit {
   onUpdate(payload: CategoryFormPayload): void {
     this.categoryService.update(this.id, payload.category, payload.imageFile).subscribe({
       next: () => {
-        showSuccess('Actualizado');
+        showSuccess('Actualizado', 'Categoría actualizada correctamente.');
         this.router.navigate(['/admin/categories/list']);
       },
-      error: (err) => showApiError(err),
+      error: (err) => showApiError(err, 'No se pudo actualizar la categoría.'),
     });
   }
 }

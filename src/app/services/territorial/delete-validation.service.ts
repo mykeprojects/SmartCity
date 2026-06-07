@@ -5,6 +5,8 @@ import { catchError, map } from 'rxjs/operators';
 import { OfficialService } from './official.service';
 import { InterestedPartyService } from './interested-party.service';
 import { AnnotationService } from './annotation.service';
+import { CategoryService } from './category.service';
+import { AnnotationCategoryService } from './annotation-category.service';
 
 export interface DeleteCheckResult {
   canDelete: boolean;
@@ -16,7 +18,9 @@ export class DeleteValidationService {
   constructor(
     private officialService: OfficialService,
     private interestedPartyService: InterestedPartyService,
-    private annotationService: AnnotationService
+    private annotationService: AnnotationService,
+    private categoryService: CategoryService,
+    private annotationCategoryService: AnnotationCategoryService
   ) {}
 
   checkEntityDeletion(entityId: number): Observable<DeleteCheckResult> {
@@ -54,6 +58,38 @@ export class DeleteValidationService {
    */
   checkOfficialDeletion(): Observable<DeleteCheckResult> {
     return of({ canDelete: true, blockers: [] });
+  }
+
+  checkCategoryDeletion(categoryId: number): Observable<DeleteCheckResult> {
+    return forkJoin({
+      subcategories: this.categoryService.search(1, 1, {
+        id_parent_category: String(categoryId),
+      }),
+      annotationLinks: this.annotationCategoryService.search(1, 1, {
+        id_category: String(categoryId),
+      }),
+    }).pipe(
+      map(({ subcategories, annotationLinks }) => {
+        const blockers: string[] = [];
+        const subCount = subcategories.totalItems ?? 0;
+        const annotationCount = annotationLinks.totalItems ?? 0;
+
+        if (subCount > 0) {
+          blockers.push(`${subCount} subcategoría(s) asociada(s)`);
+        }
+        if (annotationCount > 0) {
+          blockers.push(`${annotationCount} anotación(es) vinculada(s)`);
+        }
+
+        return { canDelete: blockers.length === 0, blockers };
+      }),
+      catchError(() =>
+        of({
+          canDelete: false,
+          blockers: ['No se pudieron verificar las dependencias de la categoría.'],
+        })
+      )
+    );
   }
 
   checkCitizenDeletion(citizenId: number): Observable<DeleteCheckResult> {

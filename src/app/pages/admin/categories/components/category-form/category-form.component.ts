@@ -33,12 +33,13 @@ export interface CategoryFormPayload {
 })
 export class CategoryFormComponent implements OnInit {
   @Input() category?: Category;
-  @Input() forceSubcategory = false;
+  @Input() presetParentId?: number;
   @Output() formSubmit = new EventEmitter<CategoryFormPayload>();
 
   form!: FormGroup;
   isEditMode = false;
   parentCategories: Category[] = [];
+  presetParentName = '';
   imagePreviewUrl = '';
   private imageFile?: File;
 
@@ -54,21 +55,28 @@ export class CategoryFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.isEditMode = !!this.category;
+    const initialParentId = this.category?.id_parent_category ?? this.presetParentId ?? null;
+
     this.categoryService.getAll().subscribe({
       next: (items) => {
         const list = Array.isArray(items) ? items : [];
-        this.parentCategories = list.filter((c) => !c.id_parent_category);
+        this.parentCategories = list.filter(
+          (c) =>
+            !c.id_parent_category &&
+            c.id_category !== this.category?.id_category
+        );
+        if (this.presetParentId) {
+          const parent = list.find((c) => c.id_category === this.presetParentId);
+          this.presetParentName = parent?.name ?? '';
+        }
       },
     });
 
     this.form = this.fb.group({
-      name: [this.category?.name ?? '', Validators.required],
-      description: [this.category?.description ?? ''],
+      name: [this.category?.name ?? '', [Validators.required, Validators.maxLength(120)]],
+      description: [this.category?.description ?? '', [Validators.maxLength(500)]],
       status: [this.category?.status ?? 'active', Validators.required],
-      id_parent_category: [
-        this.category?.id_parent_category ?? (this.forceSubcategory ? null : null),
-        this.forceSubcategory ? Validators.required : [],
-      ],
+      id_parent_category: [initialParentId],
     });
 
     this.imagePreviewUrl = territorialImageUrl(this.category?.image_url);
@@ -82,11 +90,18 @@ export class CategoryFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.form.invalid) return;
-    const value = { ...this.form.value };
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const value = { ...this.form.getRawValue() };
+    value.name = (value.name as string)?.trim();
+    value.description = (value.description as string)?.trim();
     if (!value.id_parent_category) {
       delete value.id_parent_category;
     }
+
     this.formSubmit.emit({ category: value, imageFile: this.imageFile });
   }
 

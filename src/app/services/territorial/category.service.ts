@@ -26,6 +26,16 @@ export class CategoryService {
     return this.http.get<Category>(`${this.apiUrl}/${id}`);
   }
 
+  search(
+    page: number,
+    pageSize: number,
+    filters: Record<string, string>
+  ): Observable<PagedResponse<Category>> {
+    return this.http.get<PagedResponse<Category>>(`${this.apiUrl}/search`, {
+      params: buildPagedParams(page, pageSize, filters),
+    });
+  }
+
   create(category: Partial<Category>, imageFile?: File): Observable<Category> {
     return this.http.post<Category>(this.apiUrl, this.toFormData(category, imageFile));
   }

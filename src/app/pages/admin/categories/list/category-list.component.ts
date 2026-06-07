@@ -1,13 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 import { Category } from 'src/app/models/territorial/category';
 import { CategoryService } from 'src/app/services/territorial/category.service';
-import { territorialImageUrl, showApiError, showSuccess } from 'src/app/services/territorial/territorial-api.util';
+import { DeleteValidationService } from 'src/app/services/territorial/delete-validation.service';
+import {
+  territorialImageUrl,
+  showApiError,
+  showDeleteBlocked,
+  showSuccess,
+} from 'src/app/services/territorial/territorial-api.util';
 
 interface CategoryNode {
   category: Category;
@@ -17,15 +26,28 @@ interface CategoryNode {
 @Component({
   selector: 'app-category-list',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatCardModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+  ],
   templateUrl: './category-list.component.html',
   styleUrl: './category-list.component.scss',
 })
 export class CategoryListComponent implements OnInit {
   tree: CategoryNode[] = [];
+  filteredTree: CategoryNode[] = [];
   loading = false;
+  searchQuery = '';
 
-  constructor(private categoryService: CategoryService, private router: Router) {}
+  constructor(
+    private categoryService: CategoryService,
+    private deleteValidation: DeleteValidationService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.load();
@@ -37,11 +59,12 @@ export class CategoryListComponent implements OnInit {
       next: (items) => {
         const list = Array.isArray(items) ? items : [];
         this.tree = this.buildTree(list);
+        this.applyFilter();
         this.loading = false;
       },
       error: (err) => {
         this.loading = false;
-        showApiError(err);
+        showApiError(err, 'No se pudieron cargar las categorías.');
       },
     });
   }
@@ -50,8 +73,29 @@ export class CategoryListComponent implements OnInit {
     return territorialImageUrl(path);
   }
 
+  statusLabel(status: string): string {
+    if (status === 'active') return 'Activo';
+    if (status === 'inactive') return 'Inactivo';
+    return status;
+  }
+
+  onSearch(): void {
+    this.applyFilter();
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.applyFilter();
+  }
+
   goCreate(): void {
     this.router.navigate(['/admin/categories/create']);
+  }
+
+  createSubcategory(parentId: number): void {
+    this.router.navigate(['/admin/categories/create'], {
+      queryParams: { parentId },
+    });
   }
 
   edit(id: number): void {
@@ -59,22 +103,55 @@ export class CategoryListComponent implements OnInit {
   }
 
   remove(category: Category): void {
-    Swal.fire({
-      title: '¿Eliminar?',
-      text: `Se eliminará "${category.name}".`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
-    }).then((r) => {
-      if (!r.isConfirmed || !category.id_category) return;
-      this.categoryService.delete(category.id_category).subscribe({
-        next: () => {
-          showSuccess('Eliminado');
-          this.load();
-        },
-        error: (err) => showApiError(err),
-      });
+    if (!category.id_category) return;
+
+    this.deleteValidation.checkCategoryDeletion(category.id_category).subscribe({
+      next: (check) => {
+        if (!check.canDelete) {
+          showDeleteBlocked('No se puede eliminar la categoría', check.blockers);
+          return;
+        }
+
+        Swal.fire({
+          title: '¿Eliminar categoría?',
+          text: `Se eliminará "${category.name}". Esta acción no se puede deshacer.`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar',
+        }).then((r) => {
+          if (!r.isConfirmed) return;
+          this.categoryService.delete(category.id_category!).subscribe({
+            next: () => {
+              showSuccess('Eliminado', 'Categoría eliminada correctamente.');
+              this.load();
+            },
+            error: (err) => showApiError(err, 'No se pudo eliminar la categoría.'),
+          });
+        });
+      },
     });
+  }
+
+  private applyFilter(): void {
+    const query = this.searchQuery.trim().toLowerCase();
+    if (!query) {
+      this.filteredTree = this.tree;
+      return;
+    }
+
+    this.filteredTree = this.tree
+      .map((node) => {
+        const parentMatches = node.category.name.toLowerCase().includes(query);
+        const matchingChildren = node.children.filter((child) =>
+          child.category.name.toLowerCase().includes(query)
+        );
+
+        if (parentMatches) return { ...node };
+        if (matchingChildren.length) return { ...node, children: matchingChildren };
+        return null;
+      })
+      .filter((node): node is CategoryNode => node !== null);
   }
 
   private buildTree(categories: Category[]): CategoryNode[] {
