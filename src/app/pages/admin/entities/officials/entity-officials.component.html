@@ -33,8 +33,9 @@
             <td class="px-4 py-2">{{ official.name }}</td>
             <td class="px-4 py-2">{{ official.email }}</td>
             <td class="px-4 py-2">{{ formatRole(official.role) }}</td>
-            <td class="px-4 py-2">
+            <td class="px-4 py-2 flex gap-2">
               <button mat-stroked-button color="primary" (click)="editOfficial(official)">Editar</button>
+              <button mat-stroked-button color="warn" (click)="deleteOfficial(official)">Eliminar</button>
             </td>
           </tr>
         </tbody>

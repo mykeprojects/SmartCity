@@ -10,8 +10,9 @@ import { ColumnDef } from 'src/app/models/component-dynamic-table/column-def';
 import { TablePageEvent } from 'src/app/models/component-dynamic-table/table-page-event';
 import { Entity } from 'src/app/models/territorial/entity';
 import { EntityService } from 'src/app/services/territorial/entity.service';
+import { DeleteValidationService } from 'src/app/services/territorial/delete-validation.service';
 import { ADMIN_TABLE_ACTIONS } from '../../shared/admin-table-actions';
-import { showApiError, showSuccess } from 'src/app/services/territorial/territorial-api.util';
+import { showApiError, showDeleteBlocked, showSuccess } from 'src/app/services/territorial/territorial-api.util';
 
 type EntityRow = Entity & { statusLabel: string };
 
@@ -50,7 +51,11 @@ export class EntityListComponent implements OnInit {
     },
   ];
 
-  constructor(private entityService: EntityService, private router: Router) {}
+  constructor(
+    private entityService: EntityService,
+    private deleteValidation: DeleteValidationService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadEntities();
@@ -113,25 +118,36 @@ export class EntityListComponent implements OnInit {
   }
 
   private confirmDelete(entity: Entity): void {
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: `¿Quieres eliminar la entidad "${entity.name}"? Esta acción no se puede deshacer.`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
-      this.entityService.delete(entity.id_entity!).subscribe({
-        next: (resp) => {
-          showSuccess('Eliminado', resp.message || 'La entidad fue eliminada.');
-          const nextPage = this.entities.length === 1 && this.page > 1 ? this.page - 1 : this.page;
-          this.loadEntities(nextPage, this.pageSize);
-        },
-        error: (err) => showApiError(err, 'No se pudo eliminar la entidad.'),
-      });
+    if (!entity.id_entity) return;
+
+    this.deleteValidation.checkEntityDeletion(entity.id_entity).subscribe({
+      next: (check) => {
+        if (!check.canDelete) {
+          showDeleteBlocked('No se puede eliminar la entidad', check.blockers);
+          return;
+        }
+
+        Swal.fire({
+          title: '¿Estás seguro?',
+          text: `¿Quieres eliminar la entidad "${entity.name}"? Esta acción no se puede deshacer.`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar',
+        }).then((result) => {
+          if (!result.isConfirmed) return;
+          this.entityService.delete(entity.id_entity!).subscribe({
+            next: (resp) => {
+              showSuccess('Eliminado', resp.message || 'La entidad fue eliminada.');
+              const nextPage = this.entities.length === 1 && this.page > 1 ? this.page - 1 : this.page;
+              this.loadEntities(nextPage, this.pageSize);
+            },
+            error: (err) => showApiError(err, 'No se pudo eliminar la entidad.'),
+          });
+        });
+      },
     });
   }
 }

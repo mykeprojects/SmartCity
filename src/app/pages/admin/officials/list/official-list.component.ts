@@ -14,11 +14,13 @@ import { Official } from 'src/app/models/territorial/official';
 import { Entity } from 'src/app/models/territorial/entity';
 import { OfficialService } from 'src/app/services/territorial/official.service';
 import { EntityService } from 'src/app/services/territorial/entity.service';
+import { DeleteValidationService } from 'src/app/services/territorial/delete-validation.service';
 import { ADMIN_TABLE_ACTIONS } from '../../shared/admin-table-actions';
 import {
   formatOfficialRole,
   OFFICIAL_ROLES,
   showApiError,
+  showDeleteBlocked,
   showSuccess,
 } from 'src/app/services/territorial/territorial-api.util';
 
@@ -61,6 +63,7 @@ export class OfficialListComponent implements OnInit {
   constructor(
     private officialService: OfficialService,
     private entityService: EntityService,
+    private deleteValidation: DeleteValidationService,
     private router: Router
   ) {}
 
@@ -152,22 +155,33 @@ export class OfficialListComponent implements OnInit {
   }
 
   private confirmDelete(official: OfficialRow): void {
-    Swal.fire({
-      title: '¿Eliminar funcionario?',
-      text: `Se eliminará "${official.name}".`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-    }).then((r) => {
-      if (!r.isConfirmed) return;
-      this.officialService.delete(official.id_official!).subscribe({
-        next: () => {
-          showSuccess('Eliminado');
-          this.loadOfficials();
-        },
-        error: (err) => showApiError(err),
-      });
+    if (!official.id_official) return;
+
+    this.deleteValidation.checkOfficialDeletion().subscribe({
+      next: (check) => {
+        if (!check.canDelete) {
+          showDeleteBlocked('No se puede eliminar el funcionario', check.blockers);
+          return;
+        }
+
+        Swal.fire({
+          title: '¿Eliminar funcionario?',
+          text: `Se eliminará "${official.name}". Esta acción no se puede deshacer.`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar',
+        }).then((r) => {
+          if (!r.isConfirmed) return;
+          this.officialService.delete(official.id_official!).subscribe({
+            next: () => {
+              showSuccess('Eliminado', 'Funcionario eliminado correctamente.');
+              this.loadOfficials();
+            },
+            error: (err) => showApiError(err, 'No se pudo eliminar el funcionario.'),
+          });
+        });
+      },
     });
   }
 }

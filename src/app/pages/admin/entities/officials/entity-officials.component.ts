@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import Swal from 'sweetalert2';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 
@@ -8,10 +9,13 @@ import { Entity } from 'src/app/models/territorial/entity';
 import { Official } from 'src/app/models/territorial/official';
 import { EntityService } from 'src/app/services/territorial/entity.service';
 import { OfficialService } from 'src/app/services/territorial/official.service';
+import { DeleteValidationService } from 'src/app/services/territorial/delete-validation.service';
 import {
   formatOfficialRole,
   isPagedResponse,
   showApiError,
+  showDeleteBlocked,
+  showSuccess,
 } from 'src/app/services/territorial/territorial-api.util';
 
 @Component({
@@ -32,7 +36,8 @@ export class EntityOfficialsComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private entityService: EntityService,
-    private officialService: OfficialService
+    private officialService: OfficialService,
+    private deleteValidation: DeleteValidationService
   ) {}
 
   ngOnInit(): void {
@@ -83,6 +88,37 @@ export class EntityOfficialsComponent implements OnInit {
     if (!official.id_official) return;
     this.router.navigate([`/admin/officials/update/${official.id_official}`], {
       queryParams: { returnUrl: `/admin/entities/${this.entityId}/officials` },
+    });
+  }
+
+  deleteOfficial(official: Official): void {
+    if (!official.id_official) return;
+
+    this.deleteValidation.checkOfficialDeletion().subscribe({
+      next: (check) => {
+        if (!check.canDelete) {
+          showDeleteBlocked('No se puede eliminar el funcionario', check.blockers);
+          return;
+        }
+
+        Swal.fire({
+          title: '¿Eliminar funcionario?',
+          text: `Se eliminará "${official.name}". Esta acción no se puede deshacer.`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar',
+        }).then((result) => {
+          if (!result.isConfirmed) return;
+          this.officialService.delete(official.id_official!).subscribe({
+            next: () => {
+              showSuccess('Eliminado', 'Funcionario eliminado correctamente.');
+              this.loadEntityOfficials();
+            },
+            error: (err) => showApiError(err, 'No se pudo eliminar el funcionario.'),
+          });
+        });
+      },
     });
   }
 

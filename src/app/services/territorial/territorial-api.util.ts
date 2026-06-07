@@ -55,6 +55,15 @@ export function showSuccess(title: string, text?: string): void {
   Swal.fire(title, text, 'success');
 }
 
+export function showDeleteBlocked(title: string, blockers: string[]): void {
+  const items = blockers.map((item) => `<li>${item}</li>`).join('');
+  Swal.fire({
+    title,
+    html: `<p class="mb-2">No se puede eliminar porque tiene dependencias asociadas:</p><ul class="text-left list-disc pl-5">${items}</ul>`,
+    icon: 'error',
+  });
+}
+
 export function officialHasEntity(official: { id_entity?: number | null }): boolean {
   return official.id_entity != null && official.id_entity > 0;
 }
