@@ -48,4 +48,13 @@ export const navItems: NavItem[] = [
     iconName: 'solar:map-point-line-duotone',
     route: '/admin/communes/list',
   },
+
+  {
+    navCap: 'Sesión',
+  },
+  {
+    displayName: 'Salir',
+    iconName: 'solar:logout-2-line-duotone',
+    action: 'logout',
+  },
 ];
