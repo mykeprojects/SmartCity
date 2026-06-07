@@ -1,8 +1,11 @@
-<div class="flex justify-end mb-3">
-  <button mat-flat-button color="primary" class="w-52 flex justify-center items-center" (click)="goCreate()">
-    Crear entidad
-  </button>
-</div>
+<mat-card class="cardWithShadow theme-card mb-4">
+  <div class="p-6 flex items-center justify-between">
+    <mat-card-title class="mb-0">Gestión de entidades</mat-card-title>
+    <button mat-flat-button color="primary" class="w-52 flex justify-center items-center" (click)="goCreate()">
+      Crear entidad
+    </button>
+  </div>
+</mat-card>
 
 <app-dynamic-table
   [data]="entities"
@@ -16,4 +19,3 @@
   (pageChange)="onPageChange($event)"
   (action)="onTableAction($event)">
 </app-dynamic-table>
-

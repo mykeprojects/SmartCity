@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 
 import { DynamicTableComponent } from 'src/app/components/ui/table/dynamic-table/dynamic-table.component';
 import { ColumnDef } from 'src/app/models/component-dynamic-table/column-def';
@@ -12,15 +13,17 @@ import { EntityService } from 'src/app/services/territorial/entity.service';
 import { ADMIN_TABLE_ACTIONS } from '../../shared/admin-table-actions';
 import { showApiError, showSuccess } from 'src/app/services/territorial/territorial-api.util';
 
+type EntityRow = Entity & { statusLabel: string };
+
 @Component({
   selector: 'app-entity-list',
   standalone: true,
-  imports: [CommonModule, DynamicTableComponent, MatButtonModule],
+  imports: [CommonModule, DynamicTableComponent, MatButtonModule, MatCardModule],
   templateUrl: './entity-list.component.html',
   styleUrl: './entity-list.component.scss',
 })
 export class EntityListComponent implements OnInit {
-  entities: Entity[] = [];
+  entities: EntityRow[] = [];
   loading = false;
 
   page = 1;
@@ -33,10 +36,19 @@ export class EntityListComponent implements OnInit {
     { header: 'Nombre', key: 'name' },
     { header: 'NIT', key: 'nit' },
     { header: 'Email', key: 'email' },
-    { header: 'Estado', key: 'status' },
+    { header: 'Estado', key: 'statusLabel' },
   ];
 
-  actions = ADMIN_TABLE_ACTIONS;
+  actions = [
+    ...ADMIN_TABLE_ACTIONS,
+    {
+      id: 'officials',
+      label: 'Funcionarios',
+      icon: 'heroUsers',
+      class:
+        'flex-1 px-2 py-1 rounded bg-green-600 text-white cursor-pointer flex items-center justify-center gap-1',
+    },
+  ];
 
   constructor(private entityService: EntityService, private router: Router) {}
 
@@ -48,7 +60,10 @@ export class EntityListComponent implements OnInit {
     this.loading = true;
     this.entityService.getPaged(page, pageSize).subscribe({
       next: (resp) => {
-        this.entities = resp.items || [];
+        this.entities = (resp.items || []).map((entity) => ({
+          ...entity,
+          statusLabel: this.formatStatus(entity.status),
+        }));
         this.page = resp.page || page;
         this.pageSize = resp.pageSize || pageSize;
         this.total = resp.totalItems ?? this.entities.length;
@@ -71,7 +86,7 @@ export class EntityListComponent implements OnInit {
     this.loadEntities(this.page, this.pageSize);
   }
 
-  onTableAction(event: { actionId: string; row: Entity }): void {
+  onTableAction(event: { actionId: string; row: EntityRow }): void {
     const { actionId, row } = event;
     const id = row.id_entity;
     if (!id) return;
@@ -82,11 +97,19 @@ export class EntityListComponent implements OnInit {
       this.router.navigate([`/admin/entities/update/${id}`]);
     } else if (actionId === 'delete') {
       this.confirmDelete(row);
+    } else if (actionId === 'officials') {
+      this.router.navigate([`/admin/entities/${id}/officials`]);
     }
   }
 
   goCreate(): void {
     this.router.navigate(['/admin/entities/create']);
+  }
+
+  private formatStatus(status: string): string {
+    if (status === 'active') return 'Activo';
+    if (status === 'inactive') return 'Inactivo';
+    return status;
   }
 
   private confirmDelete(entity: Entity): void {
@@ -104,7 +127,8 @@ export class EntityListComponent implements OnInit {
       this.entityService.delete(entity.id_entity!).subscribe({
         next: (resp) => {
           showSuccess('Eliminado', resp.message || 'La entidad fue eliminada.');
-          this.loadEntities();
+          const nextPage = this.entities.length === 1 && this.page > 1 ? this.page - 1 : this.page;
+          this.loadEntities(nextPage, this.pageSize);
         },
         error: (err) => showApiError(err, 'No se pudo eliminar la entidad.'),
       });

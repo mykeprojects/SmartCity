@@ -1,6 +1,49 @@
-<div class="flex justify-end mb-3">
-  <button mat-flat-button color="primary" (click)="goCreate()">Crear funcionario</button>
-</div>
+<mat-card class="cardWithShadow theme-card mb-4">
+  <div class="p-6 flex flex-wrap items-center justify-between gap-3">
+    <mat-card-title class="mb-0">Gestión de funcionarios</mat-card-title>
+    <button mat-flat-button color="primary" (click)="goCreate()">Crear funcionario</button>
+  </div>
+</mat-card>
+
+<mat-card class="cardWithShadow theme-card mb-4">
+  <mat-card-content class="p-6">
+    <p class="text-sm text-muted mb-4 m-0">Filtrar por entidad o por rol.</p>
+    <div class="grid grid-cols-12 gap-4 items-end">
+      <div class="col-span-12 md:col-span-4">
+        <mat-label class="font-semibold mb-2 block">Entidad</mat-label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select
+            [value]="filterEntityId"
+            (selectionChange)="filterEntityId = $event.value; onFilterChange()"
+            placeholder="Todas las entidades">
+            <mat-option [value]="null">Todas las entidades</mat-option>
+            <mat-option *ngFor="let entity of entities" [value]="entity.id_entity">
+              {{ entity.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="col-span-12 md:col-span-4">
+        <mat-label class="font-semibold mb-2 block">Rol</mat-label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select
+            [value]="filterRole"
+            (selectionChange)="filterRole = $event.value; onFilterChange()"
+            placeholder="Todos los roles">
+            <mat-option value="">Todos los roles</mat-option>
+            <mat-option *ngFor="let role of roles" [value]="role.value">
+              {{ role.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="col-span-12 md:col-span-4 flex gap-2">
+        <button mat-stroked-button (click)="clearFilters()">Limpiar filtros</button>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
 <app-dynamic-table
   [data]="officials"
   [columns]="columns"

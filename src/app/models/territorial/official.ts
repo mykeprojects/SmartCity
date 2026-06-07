@@ -1,6 +1,6 @@
 export interface Official {
   id_official?: number;
-  id_entity: number;
+  id_entity?: number | null;
   name: string;
   email: string;
   phone?: string;

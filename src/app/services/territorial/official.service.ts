@@ -12,6 +12,10 @@ export class OfficialService {
 
   constructor(private http: HttpClient) {}
 
+  getAll(): Observable<Official[]> {
+    return this.http.get<Official[]>(this.apiUrl);
+  }
+
   getPaged(page: number, pageSize: number, q?: string): Observable<PagedResponse<Official>> {
     const extra: Record<string, string> = {};
     if (q?.trim()) {

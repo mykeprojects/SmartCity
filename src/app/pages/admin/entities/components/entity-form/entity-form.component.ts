@@ -71,8 +71,19 @@ export class EntityFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.form.invalid) return;
-    this.formSubmit.emit({ entity: { ...this.form.value }, logoFile: this.logoFile });
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const value = { ...this.form.value };
+    value.name = (value.name as string)?.trim();
+    value.email = (value.email as string)?.trim();
+    value.nit = (value.nit as string)?.trim();
+    value.phone = (value.phone as string)?.trim();
+    value.address = (value.address as string)?.trim();
+
+    this.formSubmit.emit({ entity: value, logoFile: this.logoFile });
   }
 
   onCancel(): void {

@@ -11,6 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { Official } from 'src/app/models/territorial/official';
 import { Entity } from 'src/app/models/territorial/entity';
 import { EntityService } from 'src/app/services/territorial/entity.service';
+import { OFFICIAL_ROLES } from 'src/app/services/territorial/territorial-api.util';
 
 @Component({
   selector: 'app-official-form',
@@ -28,17 +29,17 @@ import { EntityService } from 'src/app/services/territorial/entity.service';
 })
 export class OfficialFormComponent implements OnInit {
   @Input() official?: Official;
+  @Input() presetEntityId?: number;
+  @Input() entityLocked = false;
+  @Input() cancelUrl = '/admin/officials/list';
   @Output() formSubmit = new EventEmitter<Partial<Official>>();
 
   form!: FormGroup;
   isEditMode = false;
   entities: Entity[] = [];
+  presetEntityName = '';
 
-  readonly roles = [
-    { value: 'official', label: 'Funcionario' },
-    { value: 'supervisor', label: 'Supervisor' },
-    { value: 'admin', label: 'Administrador' },
-  ];
+  readonly roles = OFFICIAL_ROLES;
 
   get f() {
     return this.form.controls;
@@ -52,26 +53,43 @@ export class OfficialFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.isEditMode = !!this.official;
-    this.entityService.getAll().subscribe({
-      next: (items) => (this.entities = Array.isArray(items) ? items : []),
-    });
+    const initialEntityId = this.official?.id_entity ?? this.presetEntityId ?? null;
+
+    if (!this.entityLocked) {
+      this.entityService.getAll().subscribe({
+        next: (items) => (this.entities = Array.isArray(items) ? items : []),
+      });
+    } else if (initialEntityId) {
+      this.entityService.getById(initialEntityId).subscribe({
+        next: (entity) => (this.presetEntityName = entity.name),
+      });
+    }
 
     this.form = this.fb.group({
       name: [this.official?.name ?? '', [Validators.required, Validators.maxLength(160)]],
       email: [this.official?.email ?? '', [Validators.required, Validators.email]],
       phone: [this.official?.phone ?? '', [Validators.maxLength(40)]],
       role: [this.official?.role ?? 'official', [Validators.required]],
-      id_entity: [this.official?.id_entity ?? null, [Validators.required]],
+      id_entity: [{ value: initialEntityId, disabled: this.entityLocked }, [Validators.required]],
       status: [this.official?.status ?? 'active', [Validators.required]],
     });
   }
 
   onSubmit(): void {
-    if (this.form.invalid) return;
-    this.formSubmit.emit(this.form.value);
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const value = { ...this.form.getRawValue() };
+    value.name = (value.name as string)?.trim();
+    value.email = (value.email as string)?.trim();
+    value.phone = (value.phone as string)?.trim();
+
+    this.formSubmit.emit(value);
   }
 
   onCancel(): void {
-    this.router.navigate(['/admin/officials/list']);
+    this.router.navigateByUrl(this.cancelUrl);
   }
 }

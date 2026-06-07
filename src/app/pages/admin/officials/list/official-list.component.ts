@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 
 import { DynamicTableComponent } from 'src/app/components/ui/table/dynamic-table/dynamic-table.component';
 import { ColumnDef } from 'src/app/models/component-dynamic-table/column-def';
@@ -12,31 +15,46 @@ import { Entity } from 'src/app/models/territorial/entity';
 import { OfficialService } from 'src/app/services/territorial/official.service';
 import { EntityService } from 'src/app/services/territorial/entity.service';
 import { ADMIN_TABLE_ACTIONS } from '../../shared/admin-table-actions';
-import { showApiError, showSuccess } from 'src/app/services/territorial/territorial-api.util';
+import {
+  formatOfficialRole,
+  OFFICIAL_ROLES,
+  showApiError,
+  showSuccess,
+} from 'src/app/services/territorial/territorial-api.util';
 
-type OfficialRow = Official & { entityName?: string };
+type OfficialRow = Official & { entityName: string; roleLabel: string };
 
 @Component({
   selector: 'app-official-list',
   standalone: true,
-  imports: [CommonModule, DynamicTableComponent, MatButtonModule],
+  imports: [
+    CommonModule,
+    DynamicTableComponent,
+    MatButtonModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatSelectModule,
+  ],
   templateUrl: './official-list.component.html',
 })
 export class OfficialListComponent implements OnInit {
   officials: OfficialRow[] = [];
+  entities: Entity[] = [];
   loading = false;
   page = 1;
   pageSize = 5;
   total = 0;
   totalPages = 1;
+  filterEntityId: number | null = null;
+  filterRole = '';
+  readonly roles = OFFICIAL_ROLES;
   private entityMap = new Map<number, string>();
 
   columns: ColumnDef[] = [
-    { header: 'ID', key: 'id_official' },
     { header: 'Nombre', key: 'name' },
-    { header: 'Email', key: 'email' },
+    { header: 'Correo', key: 'email' },
+    { header: 'Rol', key: 'roleLabel' },
     { header: 'Entidad', key: 'entityName' },
-    { header: 'Rol', key: 'role' },
   ];
   actions = ADMIN_TABLE_ACTIONS;
 
@@ -49,7 +67,9 @@ export class OfficialListComponent implements OnInit {
   ngOnInit(): void {
     this.entityService.getAll().subscribe({
       next: (entities) => {
-        (Array.isArray(entities) ? entities : []).forEach((e: Entity) => {
+        this.entities = Array.isArray(entities) ? entities : [];
+        this.entityMap.clear();
+        this.entities.forEach((e) => {
           if (e.id_entity) this.entityMap.set(e.id_entity, e.name);
         });
         this.loadOfficials();
@@ -60,12 +80,14 @@ export class OfficialListComponent implements OnInit {
 
   loadOfficials(page = this.page, pageSize = this.pageSize): void {
     this.loading = true;
-    this.officialService.getPaged(page, pageSize).subscribe({
+    const hasFilters = this.filterEntityId != null || !!this.filterRole;
+    const request$ = hasFilters
+      ? this.officialService.search(page, pageSize, this.buildSearchFilters())
+      : this.officialService.getPaged(page, pageSize);
+
+    request$.subscribe({
       next: (resp) => {
-        this.officials = (resp.items || []).map((o) => ({
-          ...o,
-          entityName: this.entityMap.get(o.id_entity) || `ID ${o.id_entity}`,
-        }));
+        this.officials = (resp.items || []).map((o) => this.toRow(o));
         this.page = resp.page || page;
         this.pageSize = resp.pageSize || pageSize;
         this.total = resp.totalItems ?? this.officials.length;
@@ -77,6 +99,17 @@ export class OfficialListComponent implements OnInit {
         showApiError(err);
       },
     });
+  }
+
+  onFilterChange(): void {
+    this.page = 1;
+    this.loadOfficials(1, this.pageSize);
+  }
+
+  clearFilters(): void {
+    this.filterEntityId = null;
+    this.filterRole = '';
+    this.onFilterChange();
   }
 
   onPageChange(event: TablePageEvent): void {
@@ -95,6 +128,27 @@ export class OfficialListComponent implements OnInit {
 
   goCreate(): void {
     this.router.navigate(['/admin/officials/create']);
+  }
+
+  private buildSearchFilters(): Record<string, string> {
+    const filters: Record<string, string> = {};
+    if (this.filterEntityId != null) {
+      filters['id_entity'] = String(this.filterEntityId);
+    }
+    if (this.filterRole) {
+      filters['role'] = this.filterRole;
+    }
+    return filters;
+  }
+
+  private toRow(o: Official): OfficialRow {
+    return {
+      ...o,
+      roleLabel: formatOfficialRole(o.role),
+      entityName: o.id_entity
+        ? this.entityMap.get(o.id_entity) || `ID ${o.id_entity}`
+        : 'Sin entidad',
+    };
   }
 
   private confirmDelete(official: OfficialRow): void {

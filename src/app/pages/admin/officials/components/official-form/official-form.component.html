@@ -1,6 +1,9 @@
 <mat-card class="cardWithShadow theme-card">
   <div class="p-6">
     <mat-card-title class="mb-0">{{ isEditMode ? 'Editar funcionario' : 'Crear funcionario' }}</mat-card-title>
+    <p *ngIf="entityLocked && presetEntityName" class="text-sm text-muted mt-2 mb-0">
+      Se registrará en la entidad: <strong>{{ presetEntityName }}</strong>
+    </p>
   </div>
   <mat-card-content class="border-t border-border">
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
@@ -27,11 +30,16 @@
         </div>
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="font-semibold mb-2 block">Entidad</mat-label>
-          <mat-form-field appearance="outline" class="w-full">
+          <mat-form-field appearance="outline" class="w-full" *ngIf="!entityLocked; else lockedEntityTpl">
             <mat-select formControlName="id_entity">
               <mat-option *ngFor="let e of entities" [value]="e.id_entity">{{ e.name }}</mat-option>
             </mat-select>
           </mat-form-field>
+          <ng-template #lockedEntityTpl>
+            <mat-form-field appearance="outline" class="w-full">
+              <input matInput [value]="presetEntityName" readonly />
+            </mat-form-field>
+          </ng-template>
         </div>
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="font-semibold mb-2 block">Estado</mat-label>

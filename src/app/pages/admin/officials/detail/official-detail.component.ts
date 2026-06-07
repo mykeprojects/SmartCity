@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { Official } from 'src/app/models/territorial/official';
 import { OfficialService } from 'src/app/services/territorial/official.service';
 import { EntityService } from 'src/app/services/territorial/entity.service';
+import { formatOfficialRole } from 'src/app/services/territorial/territorial-api.util';
 
 @Component({
   selector: 'app-official-detail',
@@ -20,7 +21,7 @@ import { EntityService } from 'src/app/services/territorial/entity.service';
         <p><b>Nombre:</b> {{ official.name }}</p>
         <p><b>Email:</b> {{ official.email }}</p>
         <p><b>Celular:</b> {{ official.phone || '-' }}</p>
-        <p><b>Rol:</b> {{ official.role }}</p>
+        <p><b>Rol:</b> {{ formatRole(official.role) }}</p>
         <p><b>Entidad:</b> {{ entityName }}</p>
         <p><b>Estado:</b> {{ official.status }}</p>
       </div>
@@ -48,9 +49,13 @@ export class OfficialDetailComponent implements OnInit {
     this.officialService.getById(id).subscribe({
       next: (o) => {
         this.official = o;
-        this.entityService.getById(o.id_entity).subscribe({
-          next: (e) => (this.entityName = e.name),
-        });
+        if (o.id_entity) {
+          this.entityService.getById(o.id_entity).subscribe({
+            next: (e) => (this.entityName = e.name),
+          });
+        } else {
+          this.entityName = 'Sin entidad asignada';
+        }
       },
       error: () => this.router.navigate(['/admin/officials/list']),
     });
@@ -58,5 +63,9 @@ export class OfficialDetailComponent implements OnInit {
 
   back(): void {
     this.router.navigate(['/admin/officials/list']);
+  }
+
+  formatRole(role: string): string {
+    return formatOfficialRole(role);
   }
 }

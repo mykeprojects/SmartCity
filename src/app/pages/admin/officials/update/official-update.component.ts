@@ -10,12 +10,17 @@ import { showApiError, showSuccess } from 'src/app/services/territorial/territor
   standalone: true,
   imports: [OfficialFormComponent],
   template: `@if (official) {
-    <app-official-form [official]="official" (formSubmit)="onUpdate($event)" />
+    <app-official-form
+      [official]="official"
+      [cancelUrl]="cancelUrl"
+      (formSubmit)="onUpdate($event)" />
   } @else { <p>Cargando...</p> }`,
 })
 export class OfficialUpdateComponent implements OnInit {
   official?: Official;
+  cancelUrl = '/admin/officials/list';
   private id!: number;
+  private successUrl = '/admin/officials/list';
 
   constructor(
     private route: ActivatedRoute,
@@ -25,23 +30,29 @@ export class OfficialUpdateComponent implements OnInit {
 
   ngOnInit(): void {
     this.id = Number(this.route.snapshot.paramMap.get('id'));
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (returnUrl) {
+      this.cancelUrl = returnUrl;
+      this.successUrl = returnUrl;
+    }
+
     if (isNaN(this.id)) {
       this.router.navigate(['/admin/officials/list']);
       return;
     }
     this.officialService.getById(this.id).subscribe({
       next: (o) => (this.official = o),
-      error: () => this.router.navigate(['/admin/officials/list']),
+      error: () => this.router.navigateByUrl(this.cancelUrl),
     });
   }
 
   onUpdate(data: Partial<Official>): void {
     this.officialService.update(this.id, data).subscribe({
       next: () => {
-        showSuccess('Actualizado');
-        this.router.navigate(['/admin/officials/list']);
+        showSuccess('Actualizado', 'Funcionario actualizado correctamente.');
+        this.router.navigateByUrl(this.successUrl);
       },
-      error: (err) => showApiError(err),
+      error: (err) => showApiError(err, 'No se pudo actualizar el funcionario.'),
     });
   }
 }
