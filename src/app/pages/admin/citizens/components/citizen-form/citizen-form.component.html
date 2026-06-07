@@ -2,7 +2,7 @@
   <div class="p-6">
     <mat-card-title class="mb-0">{{ isEditMode ? 'Editar ciudadano' : 'Registrar ciudadano' }}</mat-card-title>
     <p class="text-sm text-muted mt-2 mb-0">
-      Coloque un pin en el mapa para registrar la ubicación del ciudadano.
+      Escriba la dirección para ubicar el pin automáticamente, o ajústelo manualmente en el mapa.
     </p>
   </div>
   <mat-card-content class="border-t border-border">
@@ -36,10 +36,23 @@
           </mat-form-field>
         </div>
         <div class="col-span-12">
-          <mat-label class="font-semibold mb-2 block">Dirección (referencia)</mat-label>
+          <mat-label class="font-semibold mb-2 block">Dirección</mat-label>
           <mat-form-field appearance="outline" class="w-full">
             <input matInput formControlName="address" placeholder="Ej: Cra 23 # 62-15, Manizales" />
           </mat-form-field>
+          <p class="text-sm mt-1 mb-0" [ngClass]="{
+            'text-muted': geocodeStatus === 'idle',
+            'text-blue-600': geocodeStatus === 'searching',
+            'text-green-700': geocodeStatus === 'found',
+            'text-amber-700': geocodeStatus === 'not-found'
+          }">
+            <ng-container [ngSwitch]="geocodeStatus">
+              <span *ngSwitchCase="'searching'">Buscando ubicación en el mapa...</span>
+              <span *ngSwitchCase="'found'">Ubicación encontrada. Puede ajustar el pin si lo necesita.</span>
+              <span *ngSwitchCase="'not-found'">No se encontró la dirección. Ubique el pin manualmente en el mapa.</span>
+              <span *ngSwitchDefault>Ingrese la dirección para ubicar el pin automáticamente.</span>
+            </ng-container>
+          </p>
         </div>
         <div class="col-span-12">
           <mat-label class="font-semibold mb-2 block">Ubicación en el mapa</mat-label>
