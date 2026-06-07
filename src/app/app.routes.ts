@@ -61,14 +61,20 @@ export const routes: Routes = [
           {
             path: '',
             redirectTo: 'overview',
-            pathMatch: 'full'
+            pathMatch: 'full',
           },
           {
             path: 'overview',
             component: MapOverviewComponent,
-          }
-        ]
-      }
+          },
+        ],
+      },
+      {
+        path: 'admin',
+        canActivateChild: [AuthenticatedGuard],
+        loadChildren: () =>
+          import('./pages/admin/admin.routes').then((m) => m.AdminRoutes),
+      },
     ],
   },
   {

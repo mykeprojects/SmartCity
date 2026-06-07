@@ -1,0 +1,6 @@
+@if (entity) {
+  <app-entity-form [entity]="entity" (formSubmit)="onUpdate($event)" />
+} @else {
+  <p>Cargando entidad...</p>
+}
+

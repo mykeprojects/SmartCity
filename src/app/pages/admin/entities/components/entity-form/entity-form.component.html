@@ -1,0 +1,86 @@
+<mat-card class="cardWithShadow theme-card">
+  <div class="p-6">
+    <mat-card-title class="mb-0">
+      {{ isEditMode ? 'Editar entidad' : 'Crear entidad' }}
+    </mat-card-title>
+  </div>
+
+  <mat-card-content class="border-t border-border">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="grid grid-cols-12 gap-x-6">
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="font-semibold mb-2 block">Nombre</mat-label>
+          <mat-form-field appearance="outline" class="w-full" color="primary">
+            <input matInput formControlName="name" placeholder="Ingrese el nombre" />
+            <mat-error [hidden]="!(f['name'].invalid && (f['name'].dirty || f['name'].touched))">
+              <span [hidden]="!f['name'].hasError('required')">El nombre es obligatorio.</span>
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="font-semibold mb-2 block">NIT</mat-label>
+          <mat-form-field appearance="outline" class="w-full" color="primary">
+            <input matInput formControlName="nit" placeholder="Ingrese el NIT" />
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="font-semibold mb-2 block">Teléfono</mat-label>
+          <mat-form-field appearance="outline" class="w-full" color="primary">
+            <input matInput formControlName="phone" placeholder="Ingrese el teléfono" />
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="font-semibold mb-2 block">Correo electrónico</mat-label>
+          <mat-form-field appearance="outline" class="w-full" color="primary">
+            <input matInput formControlName="email" type="email" placeholder="correo@ejemplo.com" />
+            <mat-error [hidden]="!(f['email'].invalid && (f['email'].dirty || f['email'].touched))">
+              <span [hidden]="!f['email'].hasError('email')">Ingrese un correo electrónico válido.</span>
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-label class="font-semibold mb-2 block">Dirección</mat-label>
+          <mat-form-field appearance="outline" class="w-full" color="primary">
+            <input matInput formControlName="address" placeholder="Ingrese la dirección" />
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="font-semibold mb-2 block">Estado</mat-label>
+          <mat-form-field appearance="outline" class="w-full" color="primary">
+            <mat-select formControlName="status">
+              <mat-option value="active">Activo</mat-option>
+              <mat-option value="inactive">Inactivo</mat-option>
+            </mat-select>
+            <mat-error [hidden]="!(f['status'].invalid && (f['status'].dirty || f['status'].touched))">
+              <span [hidden]="!f['status'].hasError('required')">El estado es obligatorio.</span>
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="font-semibold mb-2 block">Logo institucional</mat-label>
+          <input type="file" accept="image/*" (change)="onFileChange($event)" />
+          <div class="mt-3" *ngIf="logoPreviewUrl">
+            <img [src]="logoPreviewUrl" alt="Logo" class="max-h-24 rounded border border-border" />
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3 flex gap-2">
+        <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid" class="w-36 flex justify-center items-center">
+          {{ isEditMode ? 'Actualizar' : 'Crear' }}
+        </button>
+
+        <button mat-flat-button color="warn" type="button" (click)="onCancel()" class="w-36 flex justify-center items-center">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
+

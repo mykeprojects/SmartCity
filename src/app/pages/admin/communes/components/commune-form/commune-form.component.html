@@ -1,0 +1,44 @@
+<mat-card class="cardWithShadow theme-card">
+  <div class="p-6">
+    <mat-card-title>{{ isEditMode ? 'Editar comuna' : 'Crear comuna' }}</mat-card-title>
+  </div>
+  <mat-card-content class="border-t border-border">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="grid grid-cols-12 gap-x-6">
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="font-semibold mb-2 block">Departamento</mat-label>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-select formControlName="id_department">
+              <mat-option *ngFor="let d of departments" [value]="d.id_department">{{ d.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="font-semibold mb-2 block">Ciudad</mat-label>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-select formControlName="id_city">
+              <mat-option *ngFor="let c of cities" [value]="c.id_city">{{ c.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="font-semibold mb-2 block">Nombre de la comuna</mat-label>
+          <mat-form-field appearance="outline" class="w-full"><input matInput formControlName="name" /></mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="font-semibold mb-2 block">Estado</mat-label>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-select formControlName="status">
+              <mat-option value="active">Activo</mat-option>
+              <mat-option value="inactive">Inactivo</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="mt-3 flex gap-2">
+        <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Guardar</button>
+        <button mat-flat-button color="warn" type="button" (click)="onCancel()">Cancelar</button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

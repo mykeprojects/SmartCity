@@ -1,0 +1,25 @@
+<div class="cardWithShadow theme-card p-6" *ngIf="entity; else loadingTpl">
+  <div class="flex items-center justify-between">
+    <h2 class="text-xl font-semibold">Detalle de entidad</h2>
+    <button mat-flat-button color="primary" (click)="back()">Volver</button>
+  </div>
+
+  <div class="grid grid-cols-12 gap-6 mt-6">
+    <div class="col-span-12 lg:col-span-4" *ngIf="logoUrl">
+      <img [src]="logoUrl" alt="Logo" class="w-full max-h-64 object-contain rounded border border-border" />
+    </div>
+    <div class="col-span-12 lg:col-span-8">
+      <p><span class="font-semibold">Nombre:</span> {{ entity.name }}</p>
+      <p><span class="font-semibold">NIT:</span> {{ entity.nit || '-' }}</p>
+      <p><span class="font-semibold">Teléfono:</span> {{ entity.phone || '-' }}</p>
+      <p><span class="font-semibold">Correo:</span> {{ entity.email || '-' }}</p>
+      <p><span class="font-semibold">Dirección:</span> {{ entity.address || '-' }}</p>
+      <p><span class="font-semibold">Estado:</span> {{ entity.status }}</p>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <p>Cargando entidad...</p>
+</ng-template>
+
