@@ -38,8 +38,10 @@
       <img
         *ngIf="node.category.image_url"
         [src]="imageUrl(node.category.image_url)"
-        alt=""
-        class="w-16 h-16 object-cover rounded border border-border" />
+        [alt]="node.category.name"
+        title="Clic para ampliar"
+        class="w-28 h-28 object-contain rounded border border-border cursor-pointer bg-white p-1"
+        (click)="previewImage(node.category.image_url, node.category.name)" />
       <div
         *ngIf="!node.category.image_url"
         class="w-16 h-16 rounded border border-border bg-gray-50 flex items-center justify-center text-xs text-muted">
@@ -69,8 +71,10 @@
             <img
               *ngIf="child.category.image_url"
               [src]="imageUrl(child.category.image_url)"
-              alt=""
-              class="w-12 h-12 object-cover rounded border border-border" />
+              [alt]="child.category.name"
+              title="Clic para ampliar"
+              class="w-20 h-20 object-contain rounded border border-border cursor-pointer bg-white p-1"
+              (click)="previewImage(child.category.image_url, child.category.name)" />
             <div
               *ngIf="!child.category.image_url"
               class="w-12 h-12 rounded border border-border bg-gray-50 flex items-center justify-center text-xs text-muted">

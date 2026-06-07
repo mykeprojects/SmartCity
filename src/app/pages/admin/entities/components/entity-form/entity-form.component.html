@@ -66,7 +66,13 @@
           <mat-label class="font-semibold mb-2 block">Logo institucional</mat-label>
           <input type="file" accept="image/*" (change)="onFileChange($event)" />
           <div class="mt-3" *ngIf="logoPreviewUrl">
-            <img [src]="logoPreviewUrl" alt="Logo" class="max-h-24 rounded border border-border" />
+            <img
+              [src]="logoPreviewUrl"
+              alt="Logo"
+              title="Clic para ampliar"
+              class="max-h-48 rounded border border-border object-contain cursor-pointer bg-white p-2"
+              (click)="previewLogo()" />
+            <p class="text-xs text-muted mt-1 mb-0">Clic en la imagen para verla en tamaño completo.</p>
           </div>
         </div>
       </div>

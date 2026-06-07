@@ -15,6 +15,7 @@ import {
   territorialImageUrl,
   showApiError,
   showDeleteBlocked,
+  showImagePreview,
   showSuccess,
 } from 'src/app/services/territorial/territorial-api.util';
 
@@ -71,6 +72,11 @@ export class CategoryListComponent implements OnInit {
 
   imageUrl(path?: string): string {
     return territorialImageUrl(path);
+  }
+
+  previewImage(path: string | undefined, name: string): void {
+    const url = this.imageUrl(path);
+    if (url) showImagePreview(url, name);
   }
 
   statusLabel(status: string): string {

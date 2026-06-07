@@ -10,7 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
 import { Entity } from 'src/app/models/territorial/entity';
-import { territorialImageUrl } from 'src/app/services/territorial/territorial-api.util';
+import { showImagePreview, territorialImageUrl } from 'src/app/services/territorial/territorial-api.util';
 
 export interface EntityFormPayload {
   entity: Partial<Entity>;
@@ -89,6 +89,12 @@ export class EntityFormComponent implements OnInit {
   onCancel(): void {
     this.form.reset();
     this.router.navigate(['/admin/entities/list']);
+  }
+
+  previewLogo(): void {
+    if (this.logoPreviewUrl) {
+      showImagePreview(this.logoPreviewUrl, 'Logo de entidad');
+    }
   }
 }
 

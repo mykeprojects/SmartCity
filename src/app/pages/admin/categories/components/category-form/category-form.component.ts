@@ -10,7 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 
 import { Category } from 'src/app/models/territorial/category';
 import { CategoryService } from 'src/app/services/territorial/category.service';
-import { territorialImageUrl } from 'src/app/services/territorial/territorial-api.util';
+import { showImagePreview, territorialImageUrl } from 'src/app/services/territorial/territorial-api.util';
 
 export interface CategoryFormPayload {
   category: Partial<Category>;
@@ -107,5 +107,11 @@ export class CategoryFormComponent implements OnInit {
 
   onCancel(): void {
     this.router.navigate(['/admin/categories/list']);
+  }
+
+  previewImage(): void {
+    if (this.imagePreviewUrl) {
+      showImagePreview(this.imagePreviewUrl, 'Imagen de categoría');
+    }
   }
 }

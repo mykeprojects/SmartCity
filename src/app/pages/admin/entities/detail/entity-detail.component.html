@@ -10,7 +10,13 @@
 
   <div class="grid grid-cols-12 gap-6 mt-6">
     <div class="col-span-12 lg:col-span-4" *ngIf="logoUrl">
-      <img [src]="logoUrl" alt="Logo" class="w-full max-h-64 object-contain rounded border border-border" />
+      <img
+        [src]="logoUrl"
+        alt="Logo"
+        title="Clic para ampliar"
+        class="w-full max-h-80 object-contain rounded border border-border cursor-pointer bg-white p-3"
+        (click)="previewLogo()" />
+      <p class="text-xs text-muted mt-2 mb-0">Clic en el logo para verlo en tamaño completo.</p>
     </div>
     <div class="col-span-12 lg:col-span-8">
       <p><span class="font-semibold">Nombre:</span> {{ entity.name }}</p>

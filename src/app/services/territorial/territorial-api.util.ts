@@ -5,10 +5,37 @@ import { environment } from 'src/environments/environments';
 import { PagedResponse } from 'src/app/models/territorial/paged-response';
 
 export function territorialImageUrl(path?: string | null): string {
-  if (!path) {
+  if (!path?.trim()) {
     return '';
   }
-  return `${environment.apiUrl}/api/images/${path}`;
+
+  const trimmed = path.trim();
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  let relative = trimmed.replace(/^\/+/, '');
+  if (relative.startsWith('api/images/')) {
+    relative = relative.slice('api/images/'.length);
+  }
+
+  return `${environment.apiUrl}/api/images/${relative}`;
+}
+
+export function showImagePreview(imageUrl: string, title = 'Vista previa'): void {
+  if (!imageUrl) return;
+  Swal.fire({
+    title,
+    imageUrl,
+    imageAlt: title,
+    showConfirmButton: false,
+    showCloseButton: true,
+    width: 'auto',
+    padding: '1rem',
+    customClass: {
+      image: 'max-h-[70vh] object-contain',
+    },
+  });
 }
 
 export function buildPagedParams(page: number, pageSize: number, extra?: Record<string, string>): HttpParams {
