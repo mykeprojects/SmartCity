@@ -16,6 +16,21 @@ export class CityService {
     return this.http.get<City>(`${this.apiUrl}/${id}`);
   }
 
+  getAll(pageSize = 500): Observable<City[]> {
+    return this.http
+      .get<PagedResponse<City> | City[]>(this.apiUrl, {
+        params: buildPagedParams(1, pageSize),
+      })
+      .pipe(
+        map((response) => {
+          if (isPagedResponse<City>(response)) {
+            return response.items;
+          }
+          return Array.isArray(response) ? response : [];
+        })
+      );
+  }
+
   getByDepartment(idDepartment: number, pageSize = 500): Observable<City[]> {
     return this.http
       .get<PagedResponse<City> | City[]>(`${this.apiUrl}/search`, {

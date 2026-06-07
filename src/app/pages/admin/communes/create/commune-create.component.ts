@@ -20,7 +20,8 @@ export class CommuneCreateComponent {
         showSuccess('Creado', 'Comuna registrada.');
         this.router.navigate(['/admin/communes/list']);
       },
-      error: (err) => showApiError(err),
+      error: (err) =>
+        showApiError(err, 'No se pudo registrar la comuna. Verifique que el nombre no esté duplicado en la ciudad.'),
     });
   }
 }

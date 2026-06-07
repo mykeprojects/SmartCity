@@ -7,6 +7,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import Swal from 'sweetalert2';
 
 import { Commune } from 'src/app/models/territorial/commune';
 import { Department } from 'src/app/models/territorial/department';
@@ -14,8 +15,7 @@ import { City } from 'src/app/models/territorial/city';
 import { DepartmentService } from 'src/app/services/territorial/department.service';
 import { CityService } from 'src/app/services/territorial/city.service';
 import { CommuneService } from 'src/app/services/territorial/commune.service';
-import { isPagedResponse } from 'src/app/services/territorial/territorial-api.util';
-import Swal from 'sweetalert2';
+import { isPagedResponse, showApiError } from 'src/app/services/territorial/territorial-api.util';
 
 @Component({
   selector: 'app-commune-form',
@@ -40,9 +40,15 @@ export class CommuneFormComponent implements OnInit {
   departments: Department[] = [];
   cities: City[] = [];
   communesInCity: Commune[] = [];
+  loadingCities = false;
+  noDepartments = false;
 
   get f() {
     return this.form.controls;
+  }
+
+  get citySelectDisabled(): boolean {
+    return !this.form?.value?.id_department || this.loadingCities;
   }
 
   constructor(
@@ -55,13 +61,18 @@ export class CommuneFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.isEditMode = !!this.commune;
+
     this.departmentService.getAll().subscribe({
-      next: (d) => (this.departments = Array.isArray(d) ? d : []),
+      next: (d) => {
+        this.departments = Array.isArray(d) ? d : [];
+        this.noDepartments = this.departments.length === 0;
+      },
+      error: (err) => showApiError(err, 'No se pudieron cargar los departamentos.'),
     });
 
     this.form = this.fb.group({
       id_department: [null as number | null, Validators.required],
-      id_city: [this.commune?.id_city ?? null, Validators.required],
+      id_city: [{ value: this.commune?.id_city ?? null, disabled: true }, Validators.required],
       name: [this.commune?.name ?? '', [Validators.required, Validators.maxLength(120)]],
       status: [this.commune?.status ?? 'active', Validators.required],
     });
@@ -74,28 +85,44 @@ export class CommuneFormComponent implements OnInit {
       this.form.patchValue({ id_city: null }, { emitEvent: false });
       this.cities = [];
       this.communesInCity = [];
+      const cityControl = this.form.get('id_city');
       if (deptId) {
-        this.cityService.getByDepartment(deptId).subscribe({
-          next: (cities) => (this.cities = cities),
-        });
+        cityControl?.enable({ emitEvent: false });
+        this.loadCitiesByDepartment(deptId);
+      } else {
+        cityControl?.disable({ emitEvent: false });
       }
     });
 
     this.form.get('id_city')?.valueChanges.subscribe((cityId: number) => {
-      if (cityId) {
-        this.loadCommunesInCity(cityId);
-      }
+      if (cityId) this.loadCommunesInCity(cityId);
     });
   }
 
   private initEditMode(cityId: number): void {
     this.cityService.getById(cityId).subscribe({
       next: (city) => {
-        this.form.patchValue({ id_department: city.id_department, id_city: city.id_city });
-        this.cityService.getByDepartment(city.id_department).subscribe({
-          next: (cities) => (this.cities = cities),
-        });
+        this.form.patchValue({ id_department: city.id_department });
+        this.form.get('id_city')?.enable({ emitEvent: false });
+        this.loadCitiesByDepartment(city.id_department, city.id_city);
         this.loadCommunesInCity(cityId);
+      },
+    });
+  }
+
+  private loadCitiesByDepartment(deptId: number, selectCityId?: number): void {
+    this.loadingCities = true;
+    this.cityService.getByDepartment(deptId).subscribe({
+      next: (cities) => {
+        this.cities = cities;
+        this.loadingCities = false;
+        if (selectCityId) {
+          this.form.patchValue({ id_city: selectCityId }, { emitEvent: false });
+        }
+      },
+      error: () => {
+        this.loadingCities = false;
+        this.cities = [];
       },
     });
   }
@@ -109,14 +136,19 @@ export class CommuneFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.form.invalid) return;
-    const name = (this.form.value.name as string).trim();
-    const cityId = this.form.value.id_city as number;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const name = (this.form.getRawValue().name as string).trim();
+    const cityId = this.form.getRawValue().id_city as number;
     const duplicate = this.communesInCity.some(
       (c) =>
         c.name.toLowerCase() === name.toLowerCase() &&
         c.id_commune !== this.commune?.id_commune
     );
+
     if (duplicate) {
       Swal.fire(
         'Nombre duplicado',
@@ -125,10 +157,11 @@ export class CommuneFormComponent implements OnInit {
       );
       return;
     }
+
     this.formSubmit.emit({
       id_city: cityId,
       name,
-      status: this.form.value.status,
+      status: this.form.getRawValue().status,
     });
   }
 

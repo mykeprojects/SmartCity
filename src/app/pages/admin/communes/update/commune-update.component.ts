@@ -38,10 +38,10 @@ export class CommuneUpdateComponent implements OnInit {
   onUpdate(data: Partial<Commune>): void {
     this.communeService.update(this.id, data).subscribe({
       next: () => {
-        showSuccess('Actualizado');
+        showSuccess('Actualizado', 'Comuna actualizada correctamente.');
         this.router.navigate(['/admin/communes/list']);
       },
-      error: (err) => showApiError(err),
+      error: (err) => showApiError(err, 'No se pudo actualizar la comuna.'),
     });
   }
 }

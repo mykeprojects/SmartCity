@@ -7,6 +7,7 @@ import { InterestedPartyService } from './interested-party.service';
 import { AnnotationService } from './annotation.service';
 import { CategoryService } from './category.service';
 import { AnnotationCategoryService } from './annotation-category.service';
+import { NeighborhoodService } from './neighborhood.service';
 
 export interface DeleteCheckResult {
   canDelete: boolean;
@@ -20,7 +21,8 @@ export class DeleteValidationService {
     private interestedPartyService: InterestedPartyService,
     private annotationService: AnnotationService,
     private categoryService: CategoryService,
-    private annotationCategoryService: AnnotationCategoryService
+    private annotationCategoryService: AnnotationCategoryService,
+    private neighborhoodService: NeighborhoodService
   ) {}
 
   checkEntityDeletion(entityId: number): Observable<DeleteCheckResult> {
@@ -87,6 +89,23 @@ export class DeleteValidationService {
         of({
           canDelete: false,
           blockers: ['No se pudieron verificar las dependencias de la categoría.'],
+        })
+      )
+    );
+  }
+
+  checkCommuneDeletion(communeId: number): Observable<DeleteCheckResult> {
+    return this.neighborhoodService.search(1, 1, { id_commune: String(communeId) }).pipe(
+      map((resp) => {
+        const neighborhoodCount = resp.totalItems ?? 0;
+        const blockers =
+          neighborhoodCount > 0 ? [`${neighborhoodCount} barrio(s) asociado(s)`] : [];
+        return { canDelete: blockers.length === 0, blockers };
+      }),
+      catchError(() =>
+        of({
+          canDelete: false,
+          blockers: ['No se pudieron verificar las dependencias de la comuna.'],
         })
       )
     );
