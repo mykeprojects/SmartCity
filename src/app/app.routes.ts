@@ -4,6 +4,8 @@ import { FullComponent } from './layouts/full/full.component';
 import { AuthenticatedGuard } from './guards/authenticated.guard';
 import { GenerateReport } from './pages/reports/generate-report';
 import { NoAuthenticatedGuard } from './guards/no-authenticated.guard';
+import { MapLayoutComponent } from './layouts/map-layout/map-layout.component';
+import { MapOverviewComponent } from './pages/map/map-overview/map-overview.component';
 
 export const routes: Routes = [
   {
@@ -51,6 +53,21 @@ export const routes: Routes = [
             component: GenerateReport,
           },
         ],
+      },
+      {
+        path: 'map',
+        component: MapLayoutComponent,
+        children: [
+          {
+            path: '',
+            redirectTo: 'overview',
+            pathMatch: 'full'
+          },
+          {
+            path: 'overview',
+            component: MapOverviewComponent,
+          }
+        ]
       }
     ],
   },
