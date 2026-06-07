@@ -8,11 +8,14 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
 
 import { Citizen } from 'src/app/models/territorial/citizen';
 import { MapPickerComponent, MapLocation } from 'src/app/components/map/map-picker.component';
 import { GeocodingService } from 'src/app/services/territorial/geocoding.service';
+
+type GeocodeStatus = 'idle' | 'searching' | 'found' | 'from-map' | 'not-found';
 
 @Component({
   selector: 'app-citizen-form',
@@ -37,9 +40,11 @@ export class CitizenFormComponent implements OnInit {
   isEditMode = false;
   latitude = 5.0703;
   longitude = -75.5138;
-  geocodeStatus: 'idle' | 'searching' | 'found' | 'not-found' = 'idle';
+  geocodeStatus: GeocodeStatus = 'idle';
 
   private readonly destroyRef = inject(DestroyRef);
+  private readonly mapLocation$ = new Subject<MapLocation>();
+  private syncingFromAddress = false;
 
   get f() {
     return this.form.controls;
@@ -67,14 +72,18 @@ export class CitizenFormComponent implements OnInit {
     });
 
     this.setupAddressGeocoding();
+    this.setupReverseGeocoding();
   }
 
   onLocationChange(loc: MapLocation): void {
     this.latitude = loc.latitude;
     this.longitude = loc.longitude;
     this.form.patchValue({ latitude: loc.latitude, longitude: loc.longitude }, { emitEvent: false });
-    if (this.geocodeStatus === 'searching') return;
-    this.geocodeStatus = 'idle';
+
+    if (this.syncingFromAddress) return;
+
+    this.geocodeStatus = 'searching';
+    this.mapLocation$.next(loc);
   }
 
   onSubmit(): void {
@@ -120,17 +129,36 @@ export class CitizenFormComponent implements OnInit {
           this.geocodeStatus = 'not-found';
           return;
         }
-        this.applyLocation(location);
+        this.applyLocationFromAddress(location);
         this.geocodeStatus = 'found';
       });
   }
 
-  private applyLocation(location: MapLocation): void {
+  private setupReverseGeocoding(): void {
+    this.mapLocation$
+      .pipe(
+        debounceTime(400),
+        switchMap((loc) => this.geocodingService.reverseGeocode(loc.latitude, loc.longitude)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((address) => {
+        if (!address) {
+          this.geocodeStatus = 'not-found';
+          return;
+        }
+        this.form.patchValue({ address }, { emitEvent: false });
+        this.geocodeStatus = 'from-map';
+      });
+  }
+
+  private applyLocationFromAddress(location: MapLocation): void {
+    this.syncingFromAddress = true;
     this.latitude = location.latitude;
     this.longitude = location.longitude;
     this.form.patchValue(
       { latitude: location.latitude, longitude: location.longitude },
       { emitEvent: false }
     );
+    setTimeout(() => (this.syncingFromAddress = false), 500);
   }
 }

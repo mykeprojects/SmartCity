@@ -10,9 +10,23 @@ interface NominatimResult {
   display_name?: string;
 }
 
+interface NominatimReverseResult {
+  display_name?: string;
+  address?: {
+    road?: string;
+    house_number?: string;
+    suburb?: string;
+    neighbourhood?: string;
+    city?: string;
+    town?: string;
+    state?: string;
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class GeocodingService {
-  private readonly apiUrl = 'https://nominatim.openstreetmap.org/search';
+  private readonly searchUrl = 'https://nominatim.openstreetmap.org/search';
+  private readonly reverseUrl = 'https://nominatim.openstreetmap.org/reverse';
 
   constructor(private http: HttpClient) {}
 
@@ -29,7 +43,7 @@ export class GeocodingService {
       .set('countrycodes', 'co');
 
     return this.http
-      .get<NominatimResult[]>(this.apiUrl, {
+      .get<NominatimResult[]>(this.searchUrl, {
         params,
         headers: {
           'Accept-Language': 'es',
@@ -45,6 +59,44 @@ export class GeocodingService {
         }),
         catchError(() => of(null))
       );
+  }
+
+  reverseGeocode(latitude: number, longitude: number): Observable<string | null> {
+    const params = new HttpParams()
+      .set('lat', String(latitude))
+      .set('lon', String(longitude))
+      .set('format', 'json');
+
+    return this.http
+      .get<NominatimReverseResult>(this.reverseUrl, {
+        params,
+        headers: {
+          'Accept-Language': 'es',
+        },
+      })
+      .pipe(
+        map((result) => this.formatReverseAddress(result)),
+        catchError(() => of(null))
+      );
+  }
+
+  private formatReverseAddress(result: NominatimReverseResult): string | null {
+    const address = result.address;
+    if (address) {
+      const street = [address.road, address.house_number].filter(Boolean).join(' # ');
+      const locality = address.suburb || address.neighbourhood;
+      const city = address.city || address.town;
+      const parts = [street, locality, city, address.state].filter(Boolean);
+      const unique = [...new Set(parts)];
+      if (unique.length) {
+        return unique.join(', ');
+      }
+    }
+
+    const displayName = result.display_name?.trim();
+    if (!displayName) return null;
+
+    return displayName.split(',').slice(0, 4).join(',').trim();
   }
 
   private buildQuery(address: string): string {

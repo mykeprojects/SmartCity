@@ -2,7 +2,7 @@
   <div class="p-6">
     <mat-card-title class="mb-0">{{ isEditMode ? 'Editar ciudadano' : 'Registrar ciudadano' }}</mat-card-title>
     <p class="text-sm text-muted mt-2 mb-0">
-      Escriba la dirección para ubicar el pin automáticamente, o ajústelo manualmente en el mapa.
+      La dirección y el pin del mapa se sincronizan automáticamente en ambos sentidos.
     </p>
   </div>
   <mat-card-content class="border-t border-border">
@@ -47,10 +47,11 @@
             'text-amber-700': geocodeStatus === 'not-found'
           }">
             <ng-container [ngSwitch]="geocodeStatus">
-              <span *ngSwitchCase="'searching'">Buscando ubicación en el mapa...</span>
-              <span *ngSwitchCase="'found'">Ubicación encontrada. Puede ajustar el pin si lo necesita.</span>
-              <span *ngSwitchCase="'not-found'">No se encontró la dirección. Ubique el pin manualmente en el mapa.</span>
-              <span *ngSwitchDefault>Ingrese la dirección para ubicar el pin automáticamente.</span>
+              <span *ngSwitchCase="'searching'">Buscando ubicación...</span>
+              <span *ngSwitchCase="'found'">Pin ubicado según la dirección. Puede ajustarlo en el mapa.</span>
+              <span *ngSwitchCase="'from-map'">Dirección actualizada según la posición del pin.</span>
+              <span *ngSwitchCase="'not-found'">No se encontró una dirección para esa ubicación.</span>
+              <span *ngSwitchDefault>Escriba la dirección o mueva el pin en el mapa.</span>
             </ng-container>
           </p>
         </div>
