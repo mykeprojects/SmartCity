@@ -2,6 +2,11 @@ import { NavItem } from './nav-item/nav-item';
 
 export const navItems: NavItem[] = [
   {
+    displayName: 'Reportes',
+    iconName: 'lucide:chart-line',
+    route: '/reports',
+  },
+  {
     navCap: 'Home',
   },
   {
