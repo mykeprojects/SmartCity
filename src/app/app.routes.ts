@@ -15,7 +15,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        canActivateChild: [AuthenticatedGuard],
+        canActivate: [AuthenticatedGuard],
         redirectTo: '/dashboard',
         pathMatch: 'full',
       },
@@ -58,6 +58,7 @@ export const routes: Routes = [
       {
         path: 'map',
         component: MapLayoutComponent,
+        canActivateChild: [AuthenticatedGuard],
         children: [
           {
             path: '',
