@@ -1,0 +1,67 @@
+<form
+  [formGroup]="form"
+  (ngSubmit)="onSubmit()"
+  class="w-full max-w-3xl mx-auto bg-white text-gray-900 rounded-xl shadow-md p-6 space-y-5"
+>
+
+  <!-- Fecha -->
+  <div>
+    <label class="text-sm font-medium">Fecha</label>
+    <input
+      type="text"
+      formControlName="date"
+      class="w-full mt-1 rounded-lg border border-gray-300 bg-white p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+    />
+  </div>
+
+  <!-- Status -->
+  <div>
+    <label class="text-sm font-medium">Estado</label>
+    <input
+      type="text"
+      formControlName="status"
+      class="w-full mt-1 rounded-lg border border-gray-300 bg-white p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+    />
+  </div>
+
+  <!-- Barrio -->
+  <div>
+    <label class="text-sm font-medium">Barrio</label>
+    <input
+      type="text"
+      formControlName="neighborhood"
+      class="w-full mt-1 rounded-lg border border-gray-300 bg-white p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+    />
+  </div>
+
+  <!-- Creador -->
+  <div>
+    <label class="text-sm font-medium">Creador</label>
+    <input
+      type="text"
+      formControlName="citizen"
+      class="w-full mt-1 rounded-lg border border-gray-300 bg-white p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+    />
+  </div>
+
+  <!-- Descripción -->
+  <div>
+    <label class="text-sm font-medium">Descripción</label>
+    <textarea
+      rows="4"
+      formControlName="description"
+      class="w-full mt-1 rounded-lg border border-gray-300 bg-white p-3 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+    ></textarea>
+  </div>
+
+  <!-- Botón -->
+  <div class="flex justify-end">
+    <button
+      type="submit"
+      class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition"
+    >
+      Guardar
+    </button>
+  </div>
+
+</form>

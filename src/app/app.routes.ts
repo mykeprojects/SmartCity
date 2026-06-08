@@ -6,6 +6,7 @@ import { GenerateReport } from './pages/reports/generate-report';
 import { NoAuthenticatedGuard } from './guards/no-authenticated.guard';
 import { MapLayoutComponent } from './layouts/map-layout/map-layout.component';
 import { MapOverviewComponent } from './pages/map/map-overview/map-overview.component';
+import { MapAnnotationsViewer } from './pages/map/map-annotations/map-annotations';
 
 export const routes: Routes = [
   {
@@ -66,6 +67,10 @@ export const routes: Routes = [
           {
             path: 'overview',
             component: MapOverviewComponent,
+          },
+          {
+            path: 'annotations',
+            component: MapAnnotationsViewer,
           }
         ]
       }
