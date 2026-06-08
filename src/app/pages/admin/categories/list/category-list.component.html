@@ -1,0 +1,100 @@
+<mat-card class="cardWithShadow theme-card mb-4">
+  <div class="p-6 flex flex-wrap items-center justify-between gap-3">
+    <mat-card-title class="mb-0">Gestión de categorías</mat-card-title>
+    <button mat-flat-button color="primary" (click)="goCreate()">Crear categoría</button>
+  </div>
+</mat-card>
+
+<mat-card class="cardWithShadow theme-card mb-4">
+  <mat-card-content class="p-6">
+    <div class="grid grid-cols-12 gap-4 items-end">
+      <div class="col-span-12 md:col-span-8">
+        <mat-label class="font-semibold mb-2 block">Buscar por nombre</mat-label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            matInput
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="onSearch()"
+            placeholder="Nombre de categoría o subcategoría" />
+        </mat-form-field>
+      </div>
+      <div class="col-span-12 md:col-span-4 flex gap-2">
+        <button mat-flat-button color="primary" (click)="onSearch()">Buscar</button>
+        <button mat-stroked-button (click)="clearSearch()">Limpiar</button>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<p *ngIf="loading">Cargando categorías...</p>
+
+<p *ngIf="!loading && filteredTree.length === 0" class="text-muted">
+  No hay categorías registradas{{ searchQuery ? ' que coincidan con la búsqueda' : '' }}.
+</p>
+
+<div class="space-y-4" *ngIf="!loading && filteredTree.length > 0">
+  <div *ngFor="let node of filteredTree" class="cardWithShadow theme-card p-4">
+    <div class="flex items-start gap-4">
+      <img
+        *ngIf="node.category.image_url"
+        [src]="imageUrl(node.category.image_url)"
+        [alt]="node.category.name"
+        title="Clic para ampliar"
+        class="w-28 h-28 object-contain rounded border border-border cursor-pointer bg-white p-1"
+        (click)="previewImage(node.category.image_url, node.category.name)" />
+      <div
+        *ngIf="!node.category.image_url"
+        class="w-16 h-16 rounded border border-border bg-gray-50 flex items-center justify-center text-xs text-muted">
+        Sin imagen
+      </div>
+      <div class="flex-1">
+        <div class="flex flex-wrap justify-between items-start gap-3">
+          <div>
+            <span class="text-xs uppercase text-muted">Categoría</span>
+            <h3 class="font-semibold text-lg m-0">{{ node.category.name }}</h3>
+            <p class="text-sm text-muted m-0 mt-1">{{ node.category.description || 'Sin descripción' }}</p>
+            <span class="inline-block mt-2 text-xs px-2 py-1 rounded bg-gray-100">
+              {{ statusLabel(node.category.status) }}
+            </span>
+          </div>
+          <div class="flex gap-2 flex-wrap">
+            <button mat-stroked-button color="primary" (click)="createSubcategory(node.category.id_category!)">
+              Agregar subcategoría
+            </button>
+            <button mat-stroked-button color="primary" (click)="edit(node.category.id_category!)">Editar</button>
+            <button mat-stroked-button color="warn" (click)="remove(node.category)">Eliminar</button>
+          </div>
+        </div>
+
+        <div *ngIf="node.children.length" class="mt-4 pl-4 border-l-2 border-border space-y-3">
+          <div *ngFor="let child of node.children" class="flex flex-wrap items-start gap-3">
+            <img
+              *ngIf="child.category.image_url"
+              [src]="imageUrl(child.category.image_url)"
+              [alt]="child.category.name"
+              title="Clic para ampliar"
+              class="w-20 h-20 object-contain rounded border border-border cursor-pointer bg-white p-1"
+              (click)="previewImage(child.category.image_url, child.category.name)" />
+            <div
+              *ngIf="!child.category.image_url"
+              class="w-12 h-12 rounded border border-border bg-gray-50 flex items-center justify-center text-xs text-muted">
+              —
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="text-xs uppercase text-muted">Subcategoría</span>
+              <p class="font-medium m-0">{{ child.category.name }}</p>
+              <p class="text-sm text-muted m-0">{{ child.category.description || '-' }}</p>
+              <span class="inline-block mt-1 text-xs px-2 py-1 rounded bg-gray-100">
+                {{ statusLabel(child.category.status) }}
+              </span>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              <button mat-stroked-button color="primary" (click)="edit(child.category.id_category!)">Editar</button>
+              <button mat-stroked-button color="warn" (click)="remove(child.category)">Eliminar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

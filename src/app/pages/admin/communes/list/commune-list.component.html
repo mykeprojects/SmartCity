@@ -1,0 +1,53 @@
+<mat-card class="cardWithShadow theme-card mb-4">
+  <div class="p-6 flex flex-wrap items-center justify-between gap-3">
+    <mat-card-title class="mb-0">Gestión de comunas</mat-card-title>
+    <button mat-flat-button color="primary" (click)="goCreate()">Crear comuna</button>
+  </div>
+</mat-card>
+
+<mat-card class="cardWithShadow theme-card mb-4">
+  <mat-card-content class="p-6">
+    <p class="text-sm text-muted mb-4 m-0">Filtrar por departamento o ciudad.</p>
+    <div class="grid grid-cols-12 gap-4 items-end">
+      <div class="col-span-12 md:col-span-4">
+        <mat-label class="font-semibold mb-2 block">Departamento</mat-label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select
+            [value]="filterDepartmentId"
+            (selectionChange)="onDepartmentFilterChange($event.value)">
+            <mat-option [value]="null">Todos</mat-option>
+            <mat-option *ngFor="let d of departments" [value]="d.id_department">{{ d.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="col-span-12 md:col-span-4">
+        <mat-label class="font-semibold mb-2 block">Ciudad</mat-label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select
+            [value]="filterCityId"
+            [disabled]="!filterDepartmentId"
+            (selectionChange)="onCityFilterChange($event.value)">
+            <mat-option [value]="null">Todas</mat-option>
+            <mat-option *ngFor="let c of filterCities" [value]="c.id_city">{{ c.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="col-span-12 md:col-span-4 flex gap-2">
+        <button mat-stroked-button (click)="clearFilters()">Limpiar filtros</button>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<app-dynamic-table
+  [data]="communes"
+  [columns]="columns"
+  [actions]="actions"
+  [loading]="loading"
+  [totalItems]="total"
+  [totalPages]="totalPages"
+  [page]="page"
+  [pageSize]="pageSize"
+  (pageChange)="onPageChange($event)"
+  (action)="onTableAction($event)">
+</app-dynamic-table>

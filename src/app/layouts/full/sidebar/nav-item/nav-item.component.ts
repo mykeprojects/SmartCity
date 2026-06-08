@@ -21,6 +21,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { NavService } from 'src/app/services/nav.service';
+import { SecurityService } from 'src/app/services/security.service';
 
 @Component({
   selector: 'app-nav-item',
@@ -46,7 +47,11 @@ export class AppNavItemComponent implements OnChanges {
   @Input() item: NavItem | any;
   @Input() depth: any;
 
-  constructor(public navService: NavService, public router: Router) {
+  constructor(
+    public navService: NavService,
+    public router: Router,
+    private securityService: SecurityService
+  ) {
     if (this.depth === undefined) {
       this.depth = 0;
     }
@@ -61,9 +66,18 @@ export class AppNavItemComponent implements OnChanges {
   }
 
   onItemSelected(item: NavItem) {
+    if (item.action === 'logout') {
+      this.securityService.logout().then(() => {
+        this.router.navigate(['/authentication/login']);
+      });
+      if (window.innerWidth < 1024) {
+        this.notify.emit();
+      }
+      return;
+    }
+
     if (!item.children || !item.children.length) {
       this.router.navigate([item.route]);
-
     }
     if (item.children && item.children.length) {
       this.expanded = !this.expanded;
