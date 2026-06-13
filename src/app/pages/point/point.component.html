@@ -1,0 +1,206 @@
+<div class="point-page">
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Gestión territorial</p>
+      <h1>Editar polígono de barrio</h1>
+      <p class="subtitle">Busca un barrio, carga sus puntos y ajusta el polígono desde el mapa.</p>
+    </div>
+
+    <div class="hero__status" [attr.data-tone]="feedbackTone">
+      <span class="status-dot"></span>
+      <div>
+        <strong>{{ selectedNeighborhood?.name || 'Sin barrio seleccionado' }}</strong>
+        <p>{{ feedback || 'Selecciona un barrio para empezar.' }}</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="workspace">
+    <aside class="panel panel--left">
+      <div class="panel__section">
+        <h2>Selección de barrio</h2>
+        <label class="searchbox">
+          <span class="searchbox__icon">⌕</span>
+          <input
+            [(ngModel)]="searchTerm"
+            (keyup.enter)="searchNeighborhoods()"
+            type="text"
+            placeholder="Buscar barrio..."
+          />
+          <button type="button" (click)="searchNeighborhoods()">Buscar</button>
+        </label>
+
+        <p class="helper-text">Usa el filtro para cargar los puntos del barrio y graficar su contorno.</p>
+      </div>
+
+      <div class="panel__section panel__section--scroll">
+        <div class="section-title">
+          <h3>Barrios</h3>
+          <span>{{ neighborhoods.length }}</span>
+        </div>
+
+        <button
+          *ngFor="let neighborhood of neighborhoods; trackBy: trackByNeighborhood"
+          type="button"
+          class="neighborhood-card"
+          [class.neighborhood-card--active]="neighborhood.id_neighborhood === selectedNeighborhood?.id_neighborhood"
+          (click)="selectNeighborhood(neighborhood)"
+        >
+          <strong>{{ neighborhood.name }}</strong>
+          <span>Comuna {{ neighborhood.id_commune }}</span>
+        </button>
+
+        <p class="empty-state" *ngIf="!loadingNeighborhoods && neighborhoods.length === 0">
+          No hay barrios para mostrar.
+        </p>
+
+        <p class="loading-state" *ngIf="loadingNeighborhoods">Buscando barrios...</p>
+      </div>
+    </aside>
+
+    <main class="panel panel--center">
+      <div class="map-header">
+        <div>
+          <p class="map-header__label">Barrio seleccionado</p>
+          <h2>{{ selectedNeighborhood?.name || 'Bosques del Norte' }}</h2>
+          <p class="map-header__meta">
+            {{ selectedNeighborhood ? ('Comuna ' + selectedNeighborhood.id_commune) : 'Selecciona un barrio para cargar sus puntos.' }}
+          </p>
+        </div>
+
+        <div class="map-header__chips">
+          <span>{{ points.length }} puntos</span>
+          <span>
+            {{
+              activeTool === 'select'
+                ? 'Seleccionar'
+                : activeTool === 'add'
+                  ? 'Agregar punto'
+                  : activeTool === 'move'
+                    ? 'Mover punto'
+                    : 'Eliminar punto'
+            }}
+          </span>
+        </div>
+      </div>
+
+      <div class="map-stage">
+        <app-map-picker
+          class="map-stage__interactive"
+          [height]="'calc(100% - 16px)'"
+          [markers]="pointMarkers"
+          [polygon]="polygonPoints"
+          [selectedMarkerId]="selectedPointId"
+          [readonly]="false"
+          [fitBounds]="activeTool === 'select'"
+          (mapClick)="onMapClick($event)"
+          (markerSelected)="onMarkerSelected($event)"
+          (markerMoved)="onMarkerMoved($event)"
+        ></app-map-picker>
+
+        <div class="map-overlay-card">
+          <strong>{{ selectedPoint ? ('Punto #' + (selectedPoint.order ?? selectedPoint.id_point)) : 'Sin punto activo' }}</strong>
+          <p>
+            {{ selectedPoint?.latitude ?? '--' }}, {{ selectedPoint?.longitude ?? '--' }}
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <aside class="panel panel--right">
+      <div class="panel__section">
+        <h2>Herramientas de edición</h2>
+        <div class="tool-card" [class.tool-card--active]="activeTool === 'select'" (click)="activeTool = 'select'">
+          <strong>Seleccionar</strong>
+          <span>Centra el mapa en los puntos del barrio.</span>
+        </div>
+        <div class="tool-card" [class.tool-card--active]="activeTool === 'add'" (click)="activeTool = 'add'">
+          <strong>Agregar punto</strong>
+          <span>Haz clic en el mapa para crear un punto nuevo.</span>
+        </div>
+        <div class="tool-card" [class.tool-card--active]="activeTool === 'move'" (click)="activeTool = 'move'">
+          <strong>Mover punto</strong>
+          <span>Arrastra un marcador para ajustar su ubicación.</span>
+        </div>
+        <div class="tool-card" [class.tool-card--active]="activeTool === 'delete'" (click)="activeTool = 'delete'">
+          <strong>Eliminar punto</strong>
+          <span>Selecciona un punto y elimínalo del polígono.</span>
+        </div>
+      </div>
+
+      <div class="panel__section panel__section--scroll">
+        <div class="section-title">
+          <h3>Coordenadas del polígono</h3>
+          <span>{{ orderedPoints.length }} puntos</span>
+        </div>
+
+        <div class="coordinates-table">
+          <div class="coordinates-table__head">
+            <span>#</span>
+            <span>Latitud</span>
+            <span>Longitud</span>
+          </div>
+
+          <button
+            *ngFor="let point of orderedPoints; trackBy: trackByPoint"
+            type="button"
+            class="coordinates-table__row"
+            [class.coordinates-table__row--active]="point.id_point === selectedPointId"
+            (click)="selectPoint(point)"
+          >
+            <span>{{ point.order ?? point.id_point }}</span>
+            <span>{{ point.latitude | number:'1.4-4' }}</span>
+            <span>{{ point.longitude | number:'1.4-4' }}</span>
+          </button>
+        </div>
+
+        <p class="empty-state" *ngIf="orderedPoints.length === 0 && !loadingPoints">
+          Todavía no hay puntos para este barrio.
+        </p>
+
+        <p class="loading-state" *ngIf="loadingPoints">Cargando puntos del barrio...</p>
+      </div>
+
+      <div class="panel__section panel__section--form">
+        <div class="section-title">
+          <h3>Punto activo</h3>
+          <span>{{ selectedPoint ? 'Editando' : 'Sin selección' }}</span>
+        </div>
+
+        <div *ngIf="selectedPoint; else noSelection" class="point-form">
+          <label>
+            <span>Latitud</span>
+            <input [(ngModel)]="draftLatitude" type="number" step="0.000001" />
+          </label>
+
+          <label>
+            <span>Longitud</span>
+            <input [(ngModel)]="draftLongitude" type="number" step="0.000001" />
+          </label>
+
+          <label>
+            <span>Orden</span>
+            <input [(ngModel)]="draftOrder" type="number" min="1" step="1" />
+          </label>
+
+          <label>
+            <span>Tipo de punto</span>
+            <input [(ngModel)]="draftPointType" type="text" placeholder="boundary" />
+          </label>
+
+          <div class="point-form__actions">
+            <button type="button" class="button button--ghost" (click)="syncDraftFromSelection()">Restaurar</button>
+            <button type="button" class="button button--danger" (click)="deleteSelectedPoint()" [disabled]="savingPoint">Eliminar</button>
+            <button type="button" class="button button--primary" (click)="saveSelectedPoint()" [disabled]="savingPoint">Guardar cambios</button>
+          </div>
+        </div>
+
+        <ng-template #noSelection>
+          <p class="empty-state">Selecciona un punto del mapa para editar sus coordenadas.</p>
+        </ng-template>
+      </div>
+
+      <!-- Preview map removed -->
+    </aside>
+  </section>
+</div>
