@@ -18,6 +18,9 @@ import { getApps, initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { CookieService } from './cookie.service';
 import { environment } from 'src/environments/environments';
+import { CitizenService } from './territorial/citizen.service';
+import { switchMap, map } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -27,7 +30,7 @@ export class SecurityService {
   private secondaryAuth?: FirebaseAuth;
   private readonly secondaryAppName = 'user-registration';
 
-  constructor(private auth: Auth, private cookieService: CookieService) {
+  constructor(private auth: Auth, private cookieService: CookieService, private citizenService: CitizenService) {
     this.firebaseUser$ = authState(this.auth);
 
     this.firebaseUser$.subscribe(async user => {
@@ -148,5 +151,25 @@ export class SecurityService {
 
   getUser(): Observable<User | null> {
     return this.firebaseUser$;
+  }
+
+  getUserIdInBackend(): Observable<number | null> {
+    return this.getUser().pipe(
+      switchMap(user => {
+        if (!user?.email) {
+          return of(null);
+        }
+
+        return this.citizenService.getAll().pipe(
+          map(citizens => {
+            const citizen = citizens.find(
+              citizen => citizen.email === user.email
+            );
+
+            return citizen?.id_citizen ?? null;
+          })
+        );
+      })
+    );
   }
 }

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, Output, OnDestroy, ViewChild, EventEmitter } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, Output, OnDestroy, ViewChild, EventEmitter, SimpleChange, SimpleChanges } from '@angular/core';
 import { Annotation } from 'src/app/models/annotations/annotation';
 import { AnnotationForMarker } from 'src/app/models/annotations/annotationForMarker';
 import { AnnotationService } from 'src/app/services/territorial/annotation.service';
@@ -18,7 +18,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   @Input() center: [number, number] = [5.0703, -75.5138];
   @Input() zoom = 13;
-  @Input() isAnotationMode = true;
+  @Input() isAnnotationMode?: boolean;
+  @Input() mapRefreshTrigger?: number;
   @Output() newPoint = new EventEmitter<[number,number] | null>;
   @Output() selectedPoint = new EventEmitter<Annotation>;
 
@@ -43,6 +44,13 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.initMap();
+  }
+
+  ngOnChanges(changes: SimpleChanges){
+    if (changes['mapRefreshTrigger'] && this.map){
+      this.fetchAnnotations();
+      console.log("Cambio registrado")
+    }
   }
 
   private initMap(): void {
@@ -70,7 +78,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       attribution: '&copy; OpenStreetMap'
     }).addTo(this.map);
 
-    if (this.isAnotationMode){
+    if (this.isAnnotationMode){
       this.initializeAnnotationMode();
     }
 
@@ -118,6 +126,9 @@ export class MapComponent implements AfterViewInit, OnDestroy {
           annotationMarker.on('click', (e: L.LeafletMouseEvent) => {
             L.DomEvent.stop(e);
             this.selectedPoint.emit(annotationFetched);
+            if (this.currentMarker) {
+              this.map.removeLayer(this.currentMarker);
+            }
           })
           this.annotations.push(newAnnotation);
         }

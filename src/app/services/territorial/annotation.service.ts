@@ -21,4 +21,8 @@ export class AnnotationService {
       params: buildPagedParams(page, pageSize, filters),
     });
   }
+
+  create(annotation: Partial<Annotation>): Observable<Annotation>{
+    return this.http.post<Annotation>(`${this.apiUrl}`,annotation);
+  }
 }

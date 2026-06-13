@@ -1,12 +1,7 @@
-<form
-  [formGroup]="form"
-  (ngSubmit)="onSubmit()"
-  class="w-full max-w-3xl mx-auto bg-white text-gray-900 rounded-xl shadow-md p-6 space-y-5"
->
-
-    @if (isViewMode) {
-        <mat-card class="mb-4">
-            <mat-card-content>
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="w-full max-w-3xl mx-auto bg-white text-gray-900 rounded-xl shadow-md p-6 space-y-5">
+    <mat-card class="mb-4">
+        <mat-card-content>
+            @if (isViewMode) {
                 <p>
                     <strong>Fecha de publicación:</strong>
                     {{ annotationForDisplay?.registration_date }}
@@ -16,93 +11,107 @@
                     <strong>Publicado por:</strong>
                     {{ annotationForDisplay?.citizen_name }}
                 </p>
-            </mat-card-content>
-        </mat-card>
-    }
-
-  <!-- Status -->
-  <div>
-        <mat-form-field class="w-full" appearance="outline">
-        <mat-label>Estado</mat-label>
-        <input matInput formControlName="status">
-        </mat-form-field>
-  </div>
-
-  <!-- Barrio -->
-  <div>
-    <mat-form-field class="w-full" appearance="outline">
-    <mat-label>Barrio</mat-label>
-    <input matInput formControlName="neighborhood">
-    </mat-form-field>
-  </div>
-  
-
-  <!-- Descripción -->
-  <div>
-        <mat-form-field class="w-full" appearance="outline">
-        <mat-label>Descripción</mat-label>
-        <textarea
-            matInput
-            rows="4"
-            formControlName="description">
-        </textarea>
-        </mat-form-field>
-  </div>
-
-    <div>
-        <mat-form-field class="w-full" appearance="outline">
-        <mat-label>Categoría</mat-label>
-
-        <mat-select formControlName="category" appearance="outline">
-            <mat-option [value]="null">
-            Seleccione una categoría
-            </mat-option>
-
-            @for (category of categories; track category.id_category) {
-            <mat-option [value]="category.id_category">
-                {{ category.name }}
-            </mat-option>
             }
-        </mat-select>
-        </mat-form-field>
-    </div>
 
-    @if (subCategories.length > 0) {
-        <mat-form-field class="w-full" appearance="outline">
-            <mat-label>Subcategoría</mat-label>
-
-            <mat-select formControlName="subCategory">
-            <mat-option [value]="null">
-                Seleccione una subcategoría
-            </mat-option>
-
-            @for (subCategory of subCategories; track subCategory.id_category) {
-                <mat-option [value]="subCategory.id_category">
-                {{ subCategory.name }}
-                </mat-option>
-            }
-            </mat-select>
-        </mat-form-field>
-    }
-
-    <div>
-        <mat-form-field class="w-full" appearance="outline">
-        <mat-label>Entidades interesadas</mat-label>
-
-        <mat-select multiple formControlName="entities">
-            @for (entity of entities; track entity.id_entity) {
-            <mat-option [value]="entity.id_entity">
-                {{ entity.name }}
-            </mat-option>
-            }
-        </mat-select>
-        </mat-form-field>
-    </div>
-
-    @if (!isViewMode) {
-        <div class="flex justify-end">
-            <button mat-raised-button color="primary" type="submit">Guardar</button>
+        <!-- Status -->
+        <div>
+                <mat-form-field class="w-full" appearance="outline">
+                <mat-label>Estado</mat-label>
+                  <mat-select formControlName="status">
+                        <mat-option value="open">Activo</mat-option>
+                        <mat-option value="in_progress">En progreso</mat-option>
+                        <mat-option value="solved">Resuelto</mat-option>
+                    </mat-select>
+                </mat-form-field>
         </div>
-    }
 
+        <!-- Barrio -->
+        <div>
+            <mat-form-field class="w-full" appearance="outline">
+            <mat-label>Barrio</mat-label>
+            <input matInput formControlName="neighborhood">
+            </mat-form-field>
+        </div>
+        
+
+        <!-- Descripción -->
+        <div>
+                <mat-form-field class="w-full" appearance="outline">
+                <mat-label>Descripción</mat-label>
+                <textarea
+                    matInput
+                    rows="4"
+                    formControlName="description">
+                </textarea>
+                </mat-form-field>
+        </div>
+
+            <div>
+                <mat-form-field class="w-full" appearance="outline">
+                <mat-label>Categoría</mat-label>
+
+                <mat-select formControlName="category" appearance="outline">
+                    <mat-option [value]="null">
+                    Seleccione una categoría
+                    </mat-option>
+
+                    @for (category of categories; track category.id_category) {
+                    <mat-option [value]="category.id_category">
+                        {{ category.name }}
+                    </mat-option>
+                    }
+                </mat-select>
+                </mat-form-field>
+            </div>
+
+            @if (subCategories.length > 0) {
+                <mat-form-field class="w-full" appearance="outline">
+                    <mat-label>Subcategoría</mat-label>
+
+                    <mat-select formControlName="subCategory">
+                    <mat-option [value]="null">
+                        Seleccione una subcategoría
+                    </mat-option>
+
+                    @for (subCategory of subCategories; track subCategory.id_category) {
+                        <mat-option [value]="subCategory.id_category">
+                        {{ subCategory.name }}
+                        </mat-option>
+                    }
+                    </mat-select>
+                </mat-form-field>
+            }
+
+            <div>
+                <mat-form-field class="w-full" appearance="outline">
+                <mat-label>Entidades interesadas</mat-label>
+
+                <mat-select multiple formControlName="entities">
+                    @for (entity of entities; track entity.id_entity) {
+                    <mat-option [value]="entity.id_entity">
+                        {{ entity.name }}
+                    </mat-option>
+                    }
+                </mat-select>
+                </mat-form-field>
+            </div>
+
+            @if (!isViewMode) {
+                <button mat-raised-button color="primary" type="button" (click)="fileInput.click()"> Adjuntar evidencias</button>
+                <input #fileInput type="file" multiple accept="image/*" hidden (change)="onFilesSelected($event)"/>
+            }
+
+            @for (img of previews; track $index){
+                <mat-card  class="preview-card">
+                    <img mat-card-image [src]="img" />
+                </mat-card>
+            }
+
+            @if (!isViewMode) {
+                <div class="flex justify-end">
+                    <button mat-raised-button color="primary" type="submit">Guardar</button>
+                </div>
+            }
+        </mat-card-content>
+    </mat-card>
 </form>
