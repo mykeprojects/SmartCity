@@ -6,6 +6,7 @@ import { GenerateReport } from './pages/reports/generate-report';
 import { NoAuthenticatedGuard } from './guards/no-authenticated.guard';
 import { MapLayoutComponent } from './layouts/map-layout/map-layout.component';
 import { MapOverviewComponent } from './pages/map/map-overview/map-overview.component';
+import { MapAnnotationsViewer } from './pages/map/map-annotations/map-annotations';
 import { PointComponent } from './pages/point/point.component';
 import { ListComponent } from './pages/neighborhood/list/list.component'
 import { CreateNeighborhoodComponent } from './pages/neighborhood/create/create-neighborhood.component';
@@ -18,7 +19,6 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        canActivateChild: [AuthenticatedGuard],
         redirectTo: '/dashboard',
         pathMatch: 'full',
       },
@@ -61,6 +61,7 @@ export const routes: Routes = [
       {
         path: 'map',
         component: MapLayoutComponent,
+        canActivateChild: [AuthenticatedGuard],
         children: [
           {
             path: '',
@@ -72,10 +73,17 @@ export const routes: Routes = [
             component: MapOverviewComponent,
           },
           {
+<<<<<<< HEAD
+            path: 'annotations',
+            component: MapAnnotationsViewer,
+          }
+        ]
+=======
             path: 'point',
             component: PointComponent,
           },
         ],
+>>>>>>> 0354b8a3e10f7f5cad81986ee3d39af155095ff9
       },
       {
         path: 'neighborhood',

@@ -12,6 +12,10 @@ export class CitizenService {
 
   constructor(private http: HttpClient) {}
 
+  getAll(): Observable<Citizen[]>{
+    return this.http.get<Citizen[]>(`${this.apiUrl}`);
+  }
+
   getPaged(page: number, pageSize: number, q?: string): Observable<PagedResponse<Citizen>> {
     const extra: Record<string, string> = {};
     if (q?.trim()) {
