@@ -1,0 +1,14 @@
+@if (barrioAEditar) {
+    <app-neighborhood-form
+        [comunas]="comunas"
+        [datosIniciales]="barrioAEditar"
+        (alGuardar)="procesarActualizacion($event)"
+        (alCerrar)="regresar()">
+    </app-neighborhood-form>
+} @else {
+    <!-- Opcional: Un indicador visual mientras cargan los datos -->
+    <div class="flex justify-center items-center p-8 text-gray-500">
+        <span>Cargando información del barrio...</span>
+    </div>
+}
+
