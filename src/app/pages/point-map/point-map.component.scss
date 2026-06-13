@@ -1,0 +1,36 @@
+:host {
+  display: block;
+}
+
+:host ::ng-deep {
+  // 1. Estilos obligatorios para que Leaflet no rompa las dimensiones del divIcon
+  .custom-map-marker {
+    background: transparent;
+    border: none;
+    
+    // 2. Estilos del contenedor interno (el div que inyectamos)
+    .marker-inner {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      border: 2px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.25);
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    // 3. Modificadores de estado basados en la clase del contenedor externo
+    &.is-normal .marker-inner {
+      background: linear-gradient(135deg, #2f6bff, #5ea4ff);
+    }
+
+    &.is-selected .marker-inner {
+      background: linear-gradient(135deg, #0f172a, #2563eb);
+    }
+  }
+}

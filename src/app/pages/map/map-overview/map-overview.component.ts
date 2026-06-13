@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { MapComponent } from 'src/app/components/map/map/map.component';
 @Component({
   selector: 'app-map-overview',
+  standalone: true,
   imports: [MapComponent],
   templateUrl: './map-overview.component.html',
   styleUrl: './map-overview.component.scss',
