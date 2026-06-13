@@ -5,6 +5,7 @@ import { environment } from 'src/environments/environments';
 import { Category } from 'src/app/models/territorial/category';
 import { PagedResponse } from 'src/app/models/territorial/paged-response';
 import { appendFormField, buildPagedParams } from './territorial-api.util';
+import { map } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
@@ -20,6 +21,20 @@ export class CategoryService {
 
   getAll(): Observable<Category[]> {
     return this.http.get<Category[]>(this.apiUrl);
+  }
+
+  getParentCategories(): Observable<Category[]>{
+    let categories$ = this.getAll().pipe(
+      map(categories => categories.filter(c => !c.id_parent_category))
+    );
+    return categories$;
+  }
+
+  getChildCategories(id: number): Observable<Category[]>{
+    let categories$ = this.getAll().pipe(
+      map(categories => categories.filter(c => c.id_parent_category === id))
+    );
+    return categories$;
   }
 
   getById(id: number): Observable<Category> {

@@ -1,4 +1,4 @@
-export class Annotation {
+export interface Annotation {
     description: string;
     id_annotation: number;
     id_citizen: number;

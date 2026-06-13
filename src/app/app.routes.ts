@@ -15,7 +15,6 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        canActivate: [AuthenticatedGuard],
         redirectTo: '/dashboard',
         pathMatch: 'full',
       },

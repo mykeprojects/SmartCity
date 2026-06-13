@@ -13,6 +13,7 @@ import { Annotation } from 'src/app/models/annotations/annotation';
 
 export class MapAnnotationsViewer {
     selectedPoint = false;
+    
 }
 
 
