@@ -84,8 +84,15 @@ export class SecurityService {
       return result});
   }
 
+  updateDisplayName(displayName: string) {
+    const user = this.auth.currentUser;
+    if (!user) {
+      return Promise.reject(new Error('No hay sesión activa.'));
+    }
+    return updateProfile(user, { displayName: displayName.trim() });
+  }
+
   /**
-   * Este método realiza el proceso de logout:
    * 1. Llama al endpoint de logout en el backend para invalidar la sesión.
    * 2. Limpia el estado del usuario en el servicio y en el storage.
    * Es importante que el backend maneje correctamente la invalidación de la sesión (por ejemplo, eliminando la cookie).

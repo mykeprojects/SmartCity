@@ -4,7 +4,10 @@ import {
   EventEmitter,
   Input,
   ViewEncapsulation,
+  OnDestroy,
+  OnInit,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { CoreService } from 'src/app/services/core.service';
 import { MatDialog } from '@angular/material/dialog';
 import { navItems } from '../sidebar/sidebar-data';
@@ -28,14 +31,6 @@ interface notifications {
   subtitle: string;
 }
 
-interface profiledd {
-  id: number;
-  img: string;
-  title: string;
-  subtitle: string;
-  link: string;
-}
-
 @Component({
   selector: 'app-header',
   imports: [
@@ -47,7 +42,7 @@ interface profiledd {
   templateUrl: './header.component.html',
   encapsulation: ViewEncapsulation.None
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit, OnDestroy {
   @Input() showToggle = true;
   @Input() toggleChecked = false;
   @Output() toggleMobileNav = new EventEmitter<void>();
@@ -64,7 +59,8 @@ export class HeaderComponent {
     public dialog: MatDialog,
     private translate: TranslateService,
     private securityService: SecurityService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private router: Router
   ) {
     translate.setDefaultLang('en');
   }
@@ -139,27 +135,9 @@ export class HeaderComponent {
     },
   ];
 
-  profiledd: profiledd[] = [
-    {
-      id: 1,
-      img: '/assets/images/svgs/icon-account.svg',
-      title: 'My Profile',
-      subtitle: 'Account Settings',
-      link: '/',
-    },
-    {
-      id: 2,
-      img: '/assets/images/svgs/icon-inbox.svg',
-      title: 'My Inbox',
-      subtitle: 'Messages & Email',
-      link: '/',
-    },
-    {
-      id: 3,
-      img: '/assets/images/svgs/icon-tasks.svg',
-      title: 'My Tasks',
-      subtitle: 'To-do and Daily Tasks',
-      link: '/',
-    },
-  ];
+  logout(): void {
+    this.securityService.logout().then(() => {
+      this.router.navigate(['/authentication/login']);
+    });
+  }
 }
