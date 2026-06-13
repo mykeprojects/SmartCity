@@ -115,7 +115,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
           annotationMarker.setIcon(this.customIcon);
 
-          annotationMarker.addEventListener('click',(e)=>{
+          annotationMarker.on('click', (e: L.LeafletMouseEvent) => {
+            L.DomEvent.stop(e);
             this.selectedPoint.emit(annotationFetched);
           })
           this.annotations.push(newAnnotation);
@@ -148,7 +149,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         this.map.removeLayer(this.currentMarker);
       }
 
-      this.currentMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(this.map).bindTooltip("Zona de nueva anotación seleccionada",{ permanent: true});
+      this.currentMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(this.map).bindTooltip("Zona de nueva anotación seleccionada", { permanent: true });
       this.currentMarker.setIcon(customIcon);
       this.currentMarker.addEventListener('click',()=>{
         this.map.removeLayer(this.currentMarker);

@@ -5,10 +5,19 @@
 >
 
     @if (isViewMode) {
-    <mat-form-field class="w-full" appearance="outline">
-        <mat-label>Fecha</mat-label>
-        <input matInput formControlName="date">
-    </mat-form-field>
+        <mat-card class="mb-4">
+            <mat-card-content>
+                <p>
+                    <strong>Fecha de publicación:</strong>
+                    {{ annotationForDisplay?.registration_date }}
+                </p>
+
+                <p>
+                    <strong>Publicado por:</strong>
+                    {{ annotationForDisplay?.citizen_name }}
+                </p>
+            </mat-card-content>
+        </mat-card>
     }
 
   <!-- Status -->
