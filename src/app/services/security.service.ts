@@ -155,19 +155,13 @@ export class SecurityService {
 
   getUserIdInBackend(): Observable<number | null> {
     return this.getUser().pipe(
-      switchMap(user => {
+      switchMap((user) => {
         if (!user?.email) {
           return of(null);
         }
 
-        return this.citizenService.getAll().pipe(
-          map(citizens => {
-            const citizen = citizens.find(
-              citizen => citizen.email === user.email
-            );
-
-            return citizen?.id_citizen ?? null;
-          })
+        return this.citizenService.search(1, 1, { email: user.email }).pipe(
+          map((response) => response.items?.[0]?.id_citizen ?? null)
         );
       })
     );
