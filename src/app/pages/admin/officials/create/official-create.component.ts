@@ -3,7 +3,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { OfficialFormComponent } from '../components/official-form/official-form.component';
 import { OfficialService } from 'src/app/services/territorial/official.service';
 import { Official } from 'src/app/models/territorial/official';
-import { showApiError, showSuccess } from 'src/app/services/territorial/territorial-api.util';
+import { UserRegistrationPayload } from 'src/app/models/user-registration';
+import { showApiError, showSuccess, extractFirebaseErrorMessage } from 'src/app/services/territorial/territorial-api.util';
+import { SecurityService } from 'src/app/services/security.service';
 
 @Component({
   selector: 'app-official-create',
@@ -14,7 +16,7 @@ import { showApiError, showSuccess } from 'src/app/services/territorial/territor
       [presetEntityId]="presetEntityId"
       [entityLocked]="entityLocked"
       [cancelUrl]="cancelUrl"
-      (formSubmit)="onCreate($event)" />
+      (createSubmit)="onCreate($event)" />
   `,
 })
 export class OfficialCreateComponent implements OnInit {
@@ -22,11 +24,13 @@ export class OfficialCreateComponent implements OnInit {
   entityLocked = false;
   cancelUrl = '/admin/officials/list';
   private successUrl = '/admin/officials/list';
+  saving = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private officialService: OfficialService
+    private officialService: OfficialService,
+    private securityService: SecurityService
   ) {}
 
   ngOnInit(): void {
@@ -44,13 +48,31 @@ export class OfficialCreateComponent implements OnInit {
     }
   }
 
-  onCreate(data: Partial<Official>): void {
-    this.officialService.create(data).subscribe({
-      next: () => {
-        showSuccess('Creado', 'Funcionario registrado correctamente.');
-        this.router.navigateByUrl(this.successUrl);
-      },
-      error: (err) => showApiError(err, 'No se pudo registrar el funcionario.'),
-    });
+  onCreate(payload: UserRegistrationPayload<Official>): void {
+    if (this.saving) return;
+    this.saving = true;
+
+    const email = payload.data.email!;
+    this.securityService
+      .registerUser(email, payload.password, payload.data.name)
+      .then(() => {
+        this.officialService.create(payload.data).subscribe({
+          next: () => {
+            this.saving = false;
+            showSuccess('Creado', 'Funcionario registrado correctamente.');
+            this.router.navigateByUrl(this.successUrl);
+          },
+          error: (err) => {
+            this.securityService.deleteRegisteredUser(email, payload.password).finally(() => {
+              this.saving = false;
+              showApiError(err, 'No se pudo registrar el funcionario.');
+            });
+          },
+        });
+      })
+      .catch((err) => {
+        this.saving = false;
+        showApiError(err, extractFirebaseErrorMessage(err));
+      });
   }
 }

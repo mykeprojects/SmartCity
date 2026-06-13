@@ -1,14 +1,31 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Auth, authState } from '@angular/fire/auth';
-import {GithubAuthProvider,GoogleAuthProvider,OAuthProvider,signInWithPopup,signOut, User, signInWithEmailAndPassword} from 'firebase/auth';
+import {
+  GithubAuthProvider,
+  GoogleAuthProvider,
+  OAuthProvider,
+  signInWithPopup,
+  signOut,
+  User,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  deleteUser,
+  Auth as FirebaseAuth,
+} from 'firebase/auth';
+import { getApps, initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
 import { CookieService } from './cookie.service';
+import { environment } from 'src/environments/environments';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SecurityService {
   private firebaseUser$: Observable<User | null>;
+  private secondaryAuth?: FirebaseAuth;
+  private readonly secondaryAppName = 'user-registration';
 
   constructor(private auth: Auth, private cookieService: CookieService) {
     this.firebaseUser$ = authState(this.auth);
@@ -78,6 +95,39 @@ export class SecurityService {
     return signOut(this.auth).then(() => {
       this.cookieService.deleteCookie('firebaseToken');
     });
+  }
+
+  /**
+   * Crea un usuario en Firebase sin cerrar la sesión del administrador actual.
+   */
+  registerUser(email: string, password: string, displayName?: string) {
+    const secondaryAuth = this.getSecondaryAuth();
+    return createUserWithEmailAndPassword(secondaryAuth, email, password).then(async (result) => {
+      if (displayName?.trim()) {
+        await updateProfile(result.user, { displayName: displayName.trim() });
+      }
+      await signOut(secondaryAuth);
+      return result;
+    });
+  }
+
+  /**
+   * Elimina un usuario recién creado en Firebase si falla el registro en el backend.
+   */
+  deleteRegisteredUser(email: string, password: string) {
+    const secondaryAuth = this.getSecondaryAuth();
+    return signInWithEmailAndPassword(secondaryAuth, email, password)
+      .then((result) => deleteUser(result.user))
+      .finally(() => signOut(secondaryAuth));
+  }
+
+  private getSecondaryAuth(): FirebaseAuth {
+    if (!this.secondaryAuth) {
+      const existingApp = getApps().find((app) => app.name === this.secondaryAppName);
+      const app = existingApp ?? initializeApp(environment.firebase, this.secondaryAppName);
+      this.secondaryAuth = getAuth(app);
+    }
+    return this.secondaryAuth;
   }
 
   /**

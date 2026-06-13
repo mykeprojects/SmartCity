@@ -106,6 +106,21 @@ export function formatOfficialRole(role?: string | null): string {
   return OFFICIAL_ROLES.find((r) => r.value === role)?.label ?? role;
 }
 
+export function extractFirebaseErrorMessage(error: unknown, fallback = 'No se pudo crear la cuenta de acceso.'): string {
+  if (error && typeof error === 'object' && 'code' in error) {
+    const code = String((error as { code: string }).code);
+    switch (code) {
+      case 'auth/email-already-in-use':
+        return 'El correo ya está registrado en Firebase.';
+      case 'auth/weak-password':
+        return 'La contraseña debe tener al menos 6 caracteres.';
+      case 'auth/invalid-email':
+        return 'El correo electrónico no es válido.';
+    }
+  }
+  return fallback;
+}
+
 export function appendFormField(formData: FormData, key: string, value: unknown): void {
   if (value === undefined || value === null || value === '') {
     return;
