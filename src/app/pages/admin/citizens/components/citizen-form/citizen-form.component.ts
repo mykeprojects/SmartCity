@@ -12,6 +12,7 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
 
 import { Citizen } from 'src/app/models/territorial/citizen';
+import { UserRegistrationPayload } from 'src/app/models/user-registration';
 import { MapPickerComponent, MapLocation } from 'src/app/components/map/map-picker.component';
 import { GeocodingService } from 'src/app/services/territorial/geocoding.service';
 
@@ -35,6 +36,7 @@ type GeocodeStatus = 'idle' | 'searching' | 'found' | 'from-map' | 'not-found';
 export class CitizenFormComponent implements OnInit {
   @Input() citizen?: Citizen;
   @Output() formSubmit = new EventEmitter<Partial<Citizen>>();
+  @Output() createSubmit = new EventEmitter<UserRegistrationPayload<Citizen>>();
 
   form!: FormGroup;
   isEditMode = false;
@@ -69,6 +71,8 @@ export class CitizenFormComponent implements OnInit {
       status: [this.citizen?.status ?? 'active', Validators.required],
       latitude: [this.latitude, Validators.required],
       longitude: [this.longitude, Validators.required],
+      password: ['', this.isEditMode ? [] : [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', this.isEditMode ? [] : [Validators.required]],
     });
 
     this.setupAddressGeocoding();
@@ -100,7 +104,21 @@ export class CitizenFormComponent implements OnInit {
     value.latitude = Number(value.latitude);
     value.longitude = Number(value.longitude);
 
-    this.formSubmit.emit(value);
+    if (!this.isEditMode) {
+      const password = (value.password as string) ?? '';
+      const confirmPassword = (value.confirmPassword as string) ?? '';
+      if (password !== confirmPassword) {
+        this.form.get('confirmPassword')?.setErrors({ mismatch: true });
+        return;
+      }
+
+      const { password: _password, confirmPassword: _confirmPassword, ...data } = value;
+      this.createSubmit.emit({ data, password });
+      return;
+    }
+
+    const { password: _password, confirmPassword: _confirmPassword, ...data } = value;
+    this.formSubmit.emit(data);
   }
 
   onCancel(): void {

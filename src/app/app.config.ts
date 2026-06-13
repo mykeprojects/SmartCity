@@ -61,16 +61,7 @@ export const appConfig: ApplicationConfig = {
       suffix: '.json'
     }),
     provideFirebaseApp(()=>
-      initializeApp({
-        apiKey: environment.firebase_key,
-        authDomain: "security-2025-02.firebaseapp.com",
-        projectId: "security-2025-02",
-        storageBucket: "security-2025-02.firebasestorage.app",
-        messagingSenderId: "675694347977",
-        appId: "1:675694347977:web:2b39e2f8740ec17761af18",
-        measurementId: "G-KNWTQS3NEN",
-
-      })
+      initializeApp(environment.firebase)
     ),
       provideAuth(() => getAuth()),
   ],
