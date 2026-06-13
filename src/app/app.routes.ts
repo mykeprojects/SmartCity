@@ -73,17 +73,14 @@ export const routes: Routes = [
             component: MapOverviewComponent,
           },
           {
-<<<<<<< HEAD
             path: 'annotations',
             component: MapAnnotationsViewer,
-          }
-        ]
-=======
+          },
+          {
             path: 'point',
             component: PointComponent,
           },
         ],
->>>>>>> 0354b8a3e10f7f5cad81986ee3d39af155095ff9
       },
       {
         path: 'neighborhood',
