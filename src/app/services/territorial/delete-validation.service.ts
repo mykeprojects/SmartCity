@@ -95,12 +95,18 @@ export class DeleteValidationService {
   }
 
   checkCommuneDeletion(communeId: number): Observable<DeleteCheckResult> {
-    return this.neighborhoodService.search(1, 1, { id_commune: String(communeId) }).pipe(
+    return this.neighborhoodService.search(1, 500, { id_commune: String(communeId) }).pipe(
       map((resp) => {
-        const neighborhoodCount = resp.totalItems ?? 0;
-        const blockers =
-          neighborhoodCount > 0 ? [`${neighborhoodCount} barrio(s) asociado(s)`] : [];
-        return { canDelete: blockers.length === 0, blockers };
+        const neighborhoods = resp.items ?? [];
+        if (neighborhoods.length === 0) {
+          return { canDelete: true, blockers: [] };
+        }
+
+        const blockers = [
+          `La comuna tiene ${neighborhoods.length} barrio(s) asociado(s):`,
+          ...neighborhoods.map((neighborhood) => neighborhood.name),
+        ];
+        return { canDelete: false, blockers };
       }),
       catchError(() =>
         of({

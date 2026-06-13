@@ -84,14 +84,17 @@ export const routes: Routes = [
       },
       {
         path: 'neighborhood',
+        canActivate: [AuthenticatedGuard],
         component: ListComponent,
       },
       {
         path: 'neighborhood/create',
+        canActivate: [AuthenticatedGuard],
         component: CreateNeighborhoodComponent,
       },
       {
         path: 'neighborhood/edit/:id',
+        canActivate: [AuthenticatedGuard],
         component: UpdateNeighborhoodComponent,
       },
       {
