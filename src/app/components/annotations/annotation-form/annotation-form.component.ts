@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit, SimpleChanges } from '@angular/core';
 import { MapComponent } from 'src/app/components/map/map/map.component';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -15,7 +15,6 @@ import { EntityService } from 'src/app/services/territorial/entity.service';
 import { SecurityService } from 'src/app/services/security.service';
 import { AnnotationService } from 'src/app/services/territorial/annotation.service';
 import Swal from 'sweetalert2';
-import { formatCurrency } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { AnnotationCategoryService } from 'src/app/services/territorial/annotation-category.service';
 import { AnnotationCategory } from 'src/app/models/territorial/annotation-category';
@@ -26,7 +25,7 @@ import { Evidence } from 'src/app/models/territorial/evidence';
 import { environment } from 'src/environments/environments';
 @Component({
   selector: 'app-map-annotation-form',
-  imports: [MapComponent, ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatSelectModule,],
+  imports: [MapComponent, ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatSelectModule],
   templateUrl: './annotation-form.component.html',
   styleUrl: './annotation-form.component.scss',
   standalone: true,
@@ -42,7 +41,7 @@ export class AnnotationForm implements OnInit{
   subCategories: Category[] = [];
   entities: Entity[] = [];
   previews: string[] = [];
-  
+
   get f() { return this.form.controls; }
 
   constructor(private fb: FormBuilder,private categoryService: CategoryService,private entityService: EntityService,
@@ -112,7 +111,6 @@ export class AnnotationForm implements OnInit{
       this.form.get('entities')?.setValue(annotation.interestedParties);
 
       if (annotation.evidences && annotation.evidences.length > 0) {
-        // revoke any previous object URLs
         this.previews.forEach(url => URL.revokeObjectURL(url));
 
         this.previews = annotation.evidences
@@ -166,7 +164,6 @@ export class AnnotationForm implements OnInit{
 
 
   async onSubmit() {
-    console.log('Formulario enviado con valores:', this.form.value);
     if (this.form.invalid) return;
 
     this.securityService.getUserIdInBackend().subscribe(userId=>{

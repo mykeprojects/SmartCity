@@ -10,10 +10,11 @@ import Swal from 'sweetalert2';
 import { AnnotationCategoryService } from 'src/app/services/territorial/annotation-category.service';
 import { InterestedPartyService } from 'src/app/services/territorial/interested-party.service';
 import { EvidenceService } from 'src/app/services/territorial/evidence.service';
+import { VoteFormComponent } from 'src/app/components/votes/vote-form/vote-form.component';
 
 @Component({
   selector: 'app-map-annotations',
-  imports: [MapComponent, AnnotationForm],
+  imports: [MapComponent, AnnotationForm, VoteFormComponent],
   templateUrl: './map-annotations.html',
   styleUrl: './map-annotations.scss',
   standalone: true,
@@ -58,12 +59,10 @@ export class MapAnnotationsViewer {
                         longitude: newAnnotation.longitude,
                         registration_date: date,
                         status: newAnnotation.status,
-                                category: displayCategoryId,
+                        category: displayCategoryId,
                     };
 
-                    if (isSubCategory && category) {
-                                annotationToDisplay.subCategory = category.id_category ?? undefined;
-                    }
+                    if (isSubCategory && category) {annotationToDisplay.subCategory = category.id_category ?? undefined}
 
                     this.interestedPartiesService.getAnnotationParties(annotationToDisplay.id_annotation).subscribe({
                         next: (parties) => {
