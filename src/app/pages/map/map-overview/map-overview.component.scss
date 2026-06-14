@@ -1,0 +1,10 @@
+.map-overview-wrapper {
+  width: 100%;
+  height: calc(100vh - 70px);
+
+  app-map {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}

@@ -48,6 +48,11 @@ export const navItems: NavItem[] = [
     iconName: 'solar:map-point-line-duotone',
     route: '/admin/communes/list',
   },
+  {
+    displayName: 'Barrios',
+    iconName: 'solar:home-2-line-duotone',
+    route: '/neighborhood',
+  },
 
   {
     navCap: 'Sesión',

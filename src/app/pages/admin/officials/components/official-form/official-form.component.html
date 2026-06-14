@@ -50,6 +50,22 @@
             </mat-select>
           </mat-form-field>
         </div>
+        <ng-container *ngIf="!isEditMode">
+          <div class="col-span-12 lg:col-span-6">
+            <mat-label class="font-semibold mb-2 block">Contraseña de acceso</mat-label>
+            <mat-form-field appearance="outline" class="w-full">
+              <input matInput type="password" formControlName="password" autocomplete="new-password" />
+              <mat-hint>Mínimo 6 caracteres. Se creará la cuenta en Firebase.</mat-hint>
+            </mat-form-field>
+          </div>
+          <div class="col-span-12 lg:col-span-6">
+            <mat-label class="font-semibold mb-2 block">Confirmar contraseña</mat-label>
+            <mat-form-field appearance="outline" class="w-full">
+              <input matInput type="password" formControlName="confirmPassword" autocomplete="new-password" />
+              <mat-error *ngIf="f['confirmPassword'].hasError('mismatch')">Las contraseñas no coinciden.</mat-error>
+            </mat-form-field>
+          </div>
+        </ng-container>
       </div>
       <div class="mt-3 flex gap-2">
         <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Guardar</button>

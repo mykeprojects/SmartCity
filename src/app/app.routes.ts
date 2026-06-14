@@ -7,6 +7,7 @@ import { NoAuthenticatedGuard } from './guards/no-authenticated.guard';
 import { MapLayoutComponent } from './layouts/map-layout/map-layout.component';
 import { MapOverviewComponent } from './pages/map/map-overview/map-overview.component';
 import { OfficialTrackingComponent } from './pages/map/official-tracking/official-tracking.component';
+import { MapAnnotationsViewer } from './pages/map/map-annotations/map-annotations';
 import { PointComponent } from './pages/point/point.component';
 import { ListComponent } from './pages/neighborhood/list/list.component'
 import { CreateNeighborhoodComponent } from './pages/neighborhood/create/create-neighborhood.component';
@@ -19,7 +20,6 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        canActivateChild: [AuthenticatedGuard],
         redirectTo: '/dashboard',
         pathMatch: 'full',
       },
@@ -62,6 +62,7 @@ export const routes: Routes = [
       {
         path: 'map',
         component: MapLayoutComponent,
+        canActivateChild: [AuthenticatedGuard],
         children: [
           {
             path: '',
@@ -77,6 +78,10 @@ export const routes: Routes = [
             component: OfficialTrackingComponent,
           },
           {
+            path: 'annotations',
+            component: MapAnnotationsViewer,
+          },
+          {
             path: 'point',
             component: PointComponent,
           },
@@ -84,14 +89,17 @@ export const routes: Routes = [
       },
       {
         path: 'neighborhood',
+        canActivate: [AuthenticatedGuard],
         component: ListComponent,
       },
       {
         path: 'neighborhood/create',
+        canActivate: [AuthenticatedGuard],
         component: CreateNeighborhoodComponent,
       },
       {
         path: 'neighborhood/edit/:id',
+        canActivate: [AuthenticatedGuard],
         component: UpdateNeighborhoodComponent,
       },
       {
@@ -99,6 +107,12 @@ export const routes: Routes = [
         canActivateChild: [AuthenticatedGuard],
         loadChildren: () =>
           import('./pages/admin/admin.routes').then((m) => m.AdminRoutes),
+      },
+      {
+        path: 'account',
+        canActivateChild: [AuthenticatedGuard],
+        loadChildren: () =>
+          import('./pages/account/account.routes').then((m) => m.AccountRoutes),
       },
     ],
   },

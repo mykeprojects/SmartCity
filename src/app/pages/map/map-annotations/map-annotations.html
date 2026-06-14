@@ -1,0 +1,12 @@
+<div class="flex h-[80vh]">
+
+  <div class="flex-1 bg-gray-100">
+    <app-map [mapRefreshTrigger]="mapRefreshTrigger" [isAnnotationMode]="true" (newPoint)="selectNewPoint($event)" (selectedPoint)="selectNewAnnotation($event)"></app-map>
+  </div>
+
+  <div class="flex-1 bg-white p-6 border-l overflow-auto">
+        <app-map-annotation-form [coordinates]="selectedPointCoordinates" [annotationForDisplay]="selectedAnnotation" (formSubmit)="handleSubmit($event)"> </app-map-annotation-form>
+        <app-vote-form [currentAnnotation]="selectedAnnotation"></app-vote-form>
+  </div>
+
+</div>
