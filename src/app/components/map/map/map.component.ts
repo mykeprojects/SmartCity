@@ -23,8 +23,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   @Input() center: [number, number] = [5.0703, -75.5138];
   @Input() zoom = 13;
-  @Input() currentCategory?: number[];
-  @Input() currentSubcategory?: number[];
+  @Input() currentCategories?: number[];
   @Input() isAnnotationMode?: boolean;
   @Input() mapRefreshTrigger?: number;
   @Output() newPoint = new EventEmitter<[number,number] | null>;
@@ -67,7 +66,10 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   ngOnChanges(changes: SimpleChanges){
     if (changes['mapRefreshTrigger'] && this.map){
       this.fetchAnnotations();
-      console.log("Cambio registrado")
+    }
+
+    if (changes['currentCategories'] && this.map){
+      this.fetchAnnotations();
     }
   }
 
@@ -123,39 +125,46 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       annotations: this.annotationService.getAll(),
       annotationCategories: this.annotationCategoryService.getAll()
     }).subscribe(({ annotations, annotationCategories }) => {
+
       this.annotationCategories = annotationCategories;
 
-      this.annotations.forEach(annotation => {
-        annotation.active = false;
-      });
+      const annotationToCategory = new Map<number, number>(
+        annotationCategories.map(c => [c.id_annotation, c.id_category])
+      );
+
+      const allowedCategories = new Set<number>(this.currentCategories ?? []);
+
+      this.annotations.forEach(a => a.active = false);
 
       annotations.forEach(annotationFetched => {
+
+        const categoryId = annotationToCategory.get(annotationFetched.id_annotation);
+
+        const isAllowed = allowedCategories.size === 0 || (categoryId !== undefined && allowedCategories.has(categoryId));
+
         const found = this.annotations.find(annotationMarked =>
           annotationFetched.id_annotation === annotationMarked.annotation.id_annotation
         );
 
         if (found) {
-          found.active = true;
+          found.active = isAllowed;
         } else {
           const annotationMarker = this.createAnnotationMarker(annotationFetched);
-          const newAnnotation: AnnotationForMarker = {
+
+          this.annotations.push({
             annotation: annotationFetched,
-            active: true,
+            active: isAllowed,
             marker: annotationMarker,
-          };
-          this.annotations.push(newAnnotation);
+          });
         }
       });
 
-      const inactiveAnnotations = this.annotations.filter(annotation => (!annotation.active));
-      inactiveAnnotations.forEach(inactiveAnnotation => {
-        this.map.removeLayer(inactiveAnnotation.marker);
-      })
+      const inactive = this.annotations.filter(a => !a.active);
+      inactive.forEach(a => this.map.removeLayer(a.marker));
 
-      this.annotations = this.annotations.filter(annotation => annotation.active);
+      this.annotations = this.annotations.filter(a => a.active);
     });
   }
-
   private createAnnotationsListeners(){
     const customIcon = L.icon({
       iconUrl: 'assets/images/leaflet/marker-icon.png',
