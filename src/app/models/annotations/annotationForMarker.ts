@@ -5,4 +5,5 @@ export interface AnnotationForMarker{
     annotation: Annotation;
     active: boolean;
     marker: L.Marker;
+    category?: number;
 }

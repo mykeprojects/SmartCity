@@ -11,10 +11,11 @@ import { AnnotationCategoryService } from 'src/app/services/territorial/annotati
 import { InterestedPartyService } from 'src/app/services/territorial/interested-party.service';
 import { EvidenceService } from 'src/app/services/territorial/evidence.service';
 import { VoteFormComponent } from 'src/app/components/votes/vote-form/vote-form.component';
+import { CategoryFilterComponent } from 'src/app/components/annotations/category-filter/category-filter.component';
 
 @Component({
   selector: 'app-map-annotations',
-  imports: [MapComponent, AnnotationForm, VoteFormComponent],
+  imports: [MapComponent, AnnotationForm, VoteFormComponent, CategoryFilterComponent],
   templateUrl: './map-annotations.html',
   styleUrl: './map-annotations.scss',
   standalone: true,
@@ -25,6 +26,7 @@ export class MapAnnotationsViewer {
     selectedPointCoordinates: [number, number] | null = null;
     selectedAnnotation: AnnotationForDisplay | null = null;
     mapRefreshTrigger: number = 0;
+    selectedCategories: number[];
 
     selectNewPoint(coords: [number,number] | null){
         this.selectedPointCoordinates = coords;
@@ -129,6 +131,10 @@ export class MapAnnotationsViewer {
             timerProgressBar: true
         });
 
+    }
+
+    handleFilterChange(categories: number[]){
+        this.selectedCategories = categories;
     }
 
 }
