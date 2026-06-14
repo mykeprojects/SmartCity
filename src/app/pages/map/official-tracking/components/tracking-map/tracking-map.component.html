@@ -1,0 +1,20 @@
+<div class="tracking-map">
+  <div class="tracking-map__legend">
+    <h4>Convenciones</h4>
+    <ul>
+      <li><span class="dot dot--online"></span> En línea</li>
+      <li><span class="dot dot--offline"></span> Sin conexión</li>
+      <li><span class="dot dot--last"></span> Última posición conocida</li>
+    </ul>
+  </div>
+  
+  <button
+    type="button"
+    class="tracking-map__recenter"
+    (click)="recenterMap()"
+    title="Recentrar y ajustar vista a todos los funcionarios">
+    <i class="fa-solid fa-crosshairs"></i>
+  </button>
+
+  <div #mapContainer class="tracking-map__canvas"></div>
+</div>

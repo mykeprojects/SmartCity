@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { MapLocation } from 'src/app/components/map/map-picker.component';
+import { MapLocation } from 'src/app/models/territorial/map-location';
 
 interface NominatimResult {
   lat: string;

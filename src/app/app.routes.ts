@@ -6,6 +6,7 @@ import { GenerateReport } from './pages/reports/generate-report';
 import { NoAuthenticatedGuard } from './guards/no-authenticated.guard';
 import { MapLayoutComponent } from './layouts/map-layout/map-layout.component';
 import { MapOverviewComponent } from './pages/map/map-overview/map-overview.component';
+import { OfficialTrackingComponent } from './pages/map/official-tracking/official-tracking.component';
 import { PointComponent } from './pages/point/point.component';
 import { ListComponent } from './pages/neighborhood/list/list.component'
 import { CreateNeighborhoodComponent } from './pages/neighborhood/create/create-neighborhood.component';
@@ -70,6 +71,10 @@ export const routes: Routes = [
           {
             path: 'overview',
             component: MapOverviewComponent,
+          },
+          {
+            path: 'tracking',
+            component: OfficialTrackingComponent,
           },
           {
             path: 'point',
