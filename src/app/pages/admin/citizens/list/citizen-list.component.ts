@@ -15,7 +15,9 @@ import { CitizenService } from 'src/app/services/territorial/citizen.service';
 import { DeleteValidationService } from 'src/app/services/territorial/delete-validation.service';
 import { ADMIN_TABLE_ACTIONS } from '../../shared/admin-table-actions';
 import { showApiError, showDeleteBlocked, showSuccess } from 'src/app/services/territorial/territorial-api.util';
-import { MapMarker, MapPickerComponent } from 'src/app/components/map/map-picker.component';
+import { MapMarker } from 'src/app/models/territorial/map-marker';
+import { MapPickerComponent } from 'src/app/components/map/map-picker.component';
+
 
 type CitizenRow = Citizen & { statusLabel: string };
 

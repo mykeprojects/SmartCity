@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environments';
 import { Official } from 'src/app/models/territorial/official';
@@ -40,6 +40,29 @@ export class OfficialService {
     });
   }
 
+  searchByFilter(
+    idEntity: number, 
+    page?: number, 
+    pageSize?: number
+  ): Observable<Official[] | PagedResponse<Official>> {
+    
+    const filterUrl = `${this.apiUrl}/search`;
+    
+    // Inicializamos los parámetros con el ID del barrio obligado
+    let params = new HttpParams().set('id_entity', idEntity.toString());
+
+    // Agregamos los parámetros de paginación solo si existen
+    if (page !== undefined && page !== null) {
+      params = params.set('page', page.toString());
+    }
+    if (pageSize !== undefined && pageSize !== null) {
+      params = params.set('pageSize', pageSize.toString());
+    }
+
+    // Retornamos la petición con el tipo flexible
+    return this.http.get<Official[] | PagedResponse<Official>>(filterUrl, { params });
+  }
+
   create(official: Partial<Official>): Observable<Official> {
     return this.http.post<Official>(this.apiUrl, official);
   }
@@ -50,5 +73,13 @@ export class OfficialService {
 
   delete(id: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`);
+  }
+
+  startTracking(ids: number[]): Observable<{ started_ids: number[] }> {
+    return this.http.post<{ started_ids: number[] }>(`${this.apiUrl}/tracking/start`, { ids });
+  }
+
+  stopTracking(ids?: number[]): Observable<{ stopped_ids: number[] }> {
+    return this.http.post<{ stopped_ids: number[] }>(`${this.apiUrl}/tracking/stop`, { ids: ids ?? [] });
   }
 }

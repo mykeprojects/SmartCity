@@ -1,0 +1,127 @@
+<div class="tracking-page">
+  <header class="tracking-page__header">
+    <div>
+      <div class="tracking-page__title-row">
+        <h1>Seguimiento en tiempo real</h1>
+        <span class="live-badge" [class.live-badge--offline]="!socketConnected">
+          {{ socketConnected ? 'En vivo' : 'Desconectado' }}
+        </span>
+      </div>
+      <p class="tracking-page__subtitle">
+        Visualiza la ubicación actual de los funcionarios activos.
+      </p>
+    </div>
+  </header>
+
+  <section class="tracking-page__toolbar">
+    <div class="toolbar__group toolbar__group--filter">
+      <label class="toolbar__label">Filtrar por entidad</label>
+      <mat-form-field appearance="outline" class="entity-filter__field">
+        <mat-select
+          [value]="selectedEntityId"
+          (selectionChange)="onEntityChange($event.value)"
+          placeholder="Selecciona una entidad">
+          <mat-option *ngFor="let entity of entities" [value]="entity.id_entity">
+            {{ entity.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="toolbar__group toolbar__group--stats">
+      <div class="stats-card">
+        <div class="stats-card__item">
+          <span class="dot dot--online"></span>
+          <span class="stats-card__label">Funcionarios activos</span>
+          <strong>{{ activeCount }}</strong>
+        </div>
+        <div class="stats-card__divider"></div>
+        <div class="stats-card__item">
+          <span class="dot dot--offline"></span>
+          <span class="stats-card__label">Sin conexión</span>
+          <strong>{{ offlineCount }}</strong>
+        </div>
+        <div class="stats-card__divider"></div>
+        <div class="stats-card__item">
+          <span class="stats-card__label">Total</span>
+          <strong>{{ totalCount }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar__group toolbar__group--actions">
+      <p class="update-panel__time">
+        Última actualización:
+        <strong>{{ lastUpdate ? (lastUpdate | date:'h:mm:ss a') : '--:--:--' }}</strong>
+      </p>
+      <button mat-flat-button color="primary" (click)="refresh()" [disabled]="loading">
+        Actualizar
+      </button>
+    </div>
+  </section>
+
+  <section class="tracking-page__workspace">
+    <div class="tracking-page__map">
+      <app-tracking-map
+        [officials]="filteredOfficials"
+        [selectedId]="selectedOfficialId"
+        (officialSelected)="selectOfficial($event)">
+      </app-tracking-map>
+    </div>
+
+    <aside class="officials-panel">
+      <div class="officials-panel__header">
+        <h2>Funcionarios ({{ totalCount }})</h2>
+        <div class="officials-panel__search">
+          <span class="officials-panel__search-icon">⌕</span>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearchChange()"
+            placeholder="Buscar funcionario..."
+          />
+          <button type="button" class="officials-panel__filter-btn" aria-label="Filtrar">
+            <i class="fa-solid fa-sliders"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="officials-panel__list" *ngIf="filteredOfficials.length; else emptyState">
+        <button
+          type="button"
+          class="official-card"
+          *ngFor="let official of filteredOfficials"
+          [class.official-card--selected]="selectedOfficialId === official.id"
+          (click)="selectOfficial(official.id)">
+          <div class="official-card__avatar" [class.official-card__avatar--offline]="!official.isOnline">
+            <span>{{ official.initials }}</span>
+            <span class="official-card__status" [class.official-card__status--offline]="!official.isOnline"></span>
+          </div>
+
+          <div class="official-card__body">
+            <div class="official-card__top">
+              <strong>{{ official.name }}</strong>
+              <span>{{ formatListTime(official.lastGpsUpdate, official.isOnline) }}</span>
+            </div>
+            <div class="official-card__bottom">
+              <span class="official-card__connection">
+                <span class="dot" [class.dot--online]="official.isOnline" [class.dot--offline]="!official.isOnline"></span>
+                {{ official.isOnline ? 'En línea' : 'Sin conexión' }}
+              </span>
+              <span class="official-card__address">{{ official.address || 'Ubicación no disponible' }}</span>
+            </div>
+          </div>
+
+          <span class="official-card__chevron">›</span>
+        </button>
+      </div>
+
+      <ng-template #emptyState>
+        <div class="officials-panel__empty">
+          <p *ngIf="loading">Cargando funcionarios...</p>
+          <p *ngIf="!loading">No hay funcionarios para la entidad seleccionada.</p>
+        </div>
+      </ng-template>
+    </aside>
+  </section>
+</div>

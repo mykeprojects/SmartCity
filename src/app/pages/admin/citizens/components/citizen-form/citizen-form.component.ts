@@ -12,8 +12,9 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
 
 import { Citizen } from 'src/app/models/territorial/citizen';
+import { MapPickerComponent } from 'src/app/components/map/map-picker.component';
+import { MapLocation } from 'src/app/models/territorial/map-location';
 import { UserRegistrationPayload } from 'src/app/models/user-registration';
-import { MapPickerComponent, MapLocation } from 'src/app/components/map/map-picker.component';
 import { GeocodingService } from 'src/app/services/territorial/geocoding.service';
 
 type GeocodeStatus = 'idle' | 'searching' | 'found' | 'from-map' | 'not-found';

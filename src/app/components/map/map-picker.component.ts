@@ -12,15 +12,8 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
-
-export interface MapLocation {
-  latitude: number;
-  longitude: number;
-}
-
-export interface MapMarker extends MapLocation {
-  label?: string;
-}
+import { MapLocation } from 'src/app/models/territorial/map-location';
+import { MapMarker } from 'src/app/models/territorial/map-marker';
 
 @Component({
   selector: 'app-map-picker',

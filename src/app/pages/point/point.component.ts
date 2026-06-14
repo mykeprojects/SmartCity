@@ -2,11 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
-import { MapLocation, MapMarker, PointMapComponent } from 'src/app/pages/point-map/point-map.component';
+import {PointMapComponent } from 'src/app/pages/point-map/point-map.component';
 import { Neighborhood } from 'src/app/models/territorial/neighborhood';
 import { Point } from 'src/app/models/territorial/point';
 import { NeighborhoodService } from 'src/app/services/territorial/neighborhood.service';
 import { PointService } from 'src/app/services/territorial/point.service';
+import { MapLocation } from 'src/app/models/territorial/map-location';
+import { MapMarker } from 'src/app/models/territorial/map-marker';
+
 
 type EditingTool = 'select' | 'add' | 'move' | 'delete';
 
