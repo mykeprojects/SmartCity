@@ -1,0 +1,28 @@
+<mat-card class="mb-3">
+    <mat-card-content>
+        <div class="flex items-center justify-between">
+            <span class="font-semibold">
+                {{ citizen }}
+            </span>
+
+            <p>{{date}}</p>
+
+            <div class="flex items-center gap-1">
+                <div class="flex items-center gap-1 text-yellow-500 text-sm">
+                    @for (star of range(vote.stars); track $index) {
+                        <mat-icon class="!text-base">star</mat-icon>
+                    }
+                </div>
+
+                <span class="text-sm text-gray-500">
+                    {{ vote.stars }}
+                </span>
+            </div>
+        </div>
+
+        <p class="mt-2 text-gray-700 whitespace-pre-line">
+            {{ vote.comment }}
+        </p>
+
+    </mat-card-content>
+</mat-card>
