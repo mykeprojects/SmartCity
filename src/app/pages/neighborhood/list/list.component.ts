@@ -13,7 +13,8 @@ import Swal from 'sweetalert2';
 import { Router } from '@angular/router';
 import { Point } from 'src/app/models/territorial/point';
 import { NeighborhoodToTable } from 'src/app/models/territorial/neighboorhoodToTable';
-import { forkJoin } from 'rxjs';
+import { forkJoin, NEVER } from 'rxjs';
+import { isPagedResponse } from 'src/app/services/territorial/territorial-api.util';
 
 @Component({
   selector: 'app-list',
@@ -26,6 +27,7 @@ export class ListComponent implements OnInit {
   neighborhoods: Neighborhood[] = [];
   neighborhoodsToList: NeighborhoodToTable[] = [];
   loading = false;
+  id_points: number[] = []
 
   page = 1;
   pageSize = 5;
@@ -152,12 +154,34 @@ export class ListComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if(result.isConfirmed){
-        this.neighborhoodService.delete(neighborhood.id_neighborhood ?? 0).subscribe({
-          next: () => {
-            Swal.fire('Eliminado', `El barrio "${neighborhood.name}" ha sido eliminado`, 'success');
-            this.loadNeighborhoods(); // Agregados los paréntesis () que faltaban
+        const neighborhood_id = neighborhood.id_neighborhood || 0;
+        this.pointService.searchByFilter(neighborhood_id).subscribe({
+          next: (points) => {
+            if(isPagedResponse(points)){
+              if(points.items.length !== 0){
+
+              } else {
+                this.neighborhoodService.delete(neighborhood.id_neighborhood ?? 0).subscribe({
+                  next: () => {
+                  Swal.fire('Eliminado', `El barrio "${neighborhood.name}" ha sido eliminado`, 'success');
+                  this.loadNeighborhoods(); // Agregados los paréntesis () que faltaban
+                  }
+                });
+              }
+            }else{
+              if(points.length !== 0){
+                Swal.fire('No se puede eliminar el barrio, tiene puntos asociados');
+              } else {
+                this.neighborhoodService.delete(neighborhood.id_neighborhood ?? 0).subscribe({
+                    next: () => {
+                    Swal.fire('Eliminado', `El barrio "${neighborhood.name}" ha sido eliminado`, 'success');
+                    this.loadNeighborhoods(); // Agregados los paréntesis () que faltaban
+                    }
+                });
+              }
+            }
           }
-        });
+        })
       }
     });
   }
