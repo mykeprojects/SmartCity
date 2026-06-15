@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import Swal from 'sweetalert2';
 import { environment } from 'src/environments/environments';
 import { PagedResponse } from 'src/app/models/territorial/paged-response';
+import { Point } from 'src/app/models/territorial/point';
 
 export function territorialImageUrl(path?: string | null): string {
   if (!path?.trim()) {
@@ -127,3 +128,28 @@ export function appendFormField(formData: FormData, key: string, value: unknown)
   }
   formData.append(key, String(value));
 }
+
+export function isPointInPolygon(latitude: number, longitude: number, polygonPoints: Point[]){
+  const x = longitude;
+  const y = latitude;
+  let inside = false;
+
+  for (let i = 0, j = polygonPoints.length - 1; i < polygonPoints.length; j = i++) {
+    const xi = polygonPoints[i].longitude as number;
+    const yi = polygonPoints[i].latitude as number;
+
+    const xj = polygonPoints[j].longitude as number;
+    const yj = polygonPoints[j].latitude as number;
+
+    const intersect =
+      (yi > y) !== (yj > y) &&
+      x < ((xj - xi) * (y - yi)) / (yj - yi + xi - xi) + xi;
+
+    if (intersect) {
+      inside = !inside;
+    }
+  }
+
+  return inside;
+}
+

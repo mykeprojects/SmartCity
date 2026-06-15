@@ -12,7 +12,8 @@
           [isAnnotationMode]="true"
           [currentCategories]="selectedCategories"
           (newPoint)="selectNewPoint($event)"
-          (selectedPoint)="selectNewAnnotation($event)">
+          (selectedPoint)="selectNewAnnotation($event)"
+          (newNeighborhood)="handleNewNeighborhood($event)">
         </app-map>
       </div>
     </div>
@@ -21,6 +22,7 @@
       <app-map-annotation-form
         [coordinates]="selectedPointCoordinates"
         [annotationForDisplay]="selectedAnnotation"
+        [currentNeighborhood]="currentNeighborhood"
         (formSubmit)="handleSubmit($event)">
       </app-map-annotation-form>
 

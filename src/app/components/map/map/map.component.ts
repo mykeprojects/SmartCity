@@ -8,6 +8,11 @@ import { Category } from 'src/app/models/territorial/category';
 import { AnnotationCategoryService } from 'src/app/services/territorial/annotation-category.service';
 import { AnnotationCategory } from 'src/app/models/territorial/annotation-category';
 import { forkJoin } from 'rxjs';
+import { isPointInPolygon } from 'src/app/services/territorial/territorial-api.util';
+import { Point } from 'src/app/models/territorial/point';
+import { PointService } from 'src/app/services/territorial/point.service';
+import { NeighborhoodPolygon } from 'src/app/models/territorial/neighborhoodPolygon';
+import { NeighborhoodService } from 'src/app/services/territorial/neighborhood.service';
 
 @Component({
   selector: 'app-map',
@@ -17,7 +22,9 @@ import { forkJoin } from 'rxjs';
 })
 export class MapComponent implements AfterViewInit, OnDestroy {
 
-  constructor(private annotationService: AnnotationService, private categoryService: CategoryService, private annotationCategoryService: AnnotationCategoryService){
+  constructor(private annotationService: AnnotationService, private categoryService: CategoryService, private annotationCategoryService: AnnotationCategoryService,
+    private pointService: PointService, private neighborhoodService: NeighborhoodService,
+  ){
 
   }
 
@@ -28,6 +35,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   @Input() mapRefreshTrigger?: number;
   @Output() newPoint = new EventEmitter<[number,number] | null>;
   @Output() selectedPoint = new EventEmitter<Annotation>;
+  @Output() newNeighborhood = new EventEmitter<NeighborhoodPolygon | null>
 
   @ViewChild('mapContainer', { static: false })
   mapContainer!: ElementRef;
@@ -37,9 +45,11 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private annotations: AnnotationForMarker[] = [];
 
   private currentMarker: L.Marker;
+  private currentPolygon: L.Polygon;
 
   private categories: Category[];
   private annotationCategories: AnnotationCategory[];
+  private points: Record<string, Point[]>;
 
   private customIcon = L.icon({
     iconUrl: 'assets/images/leaflet/marker-icon.png',
@@ -54,13 +64,28 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     forkJoin({
       categories: this.categoryService.getAll(),
-      annotationCategories: this.annotationCategoryService.getAll()
+      annotationCategories: this.annotationCategoryService.getAll(),
+      points: this.pointService.getAll(),
     }).subscribe(result => {
       this.categories = result.categories;
       this.annotationCategories = result.annotationCategories;
+      const points = result.points.filter(point => point.point_type === "boundary")
+      const grouped = points.reduce((acc, item) => {
+        const key = item.id_neighborhood as number;
+
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+
+        acc[key].push(item);
+
+        return acc;
+      }, {} as Record<string, Point[]>);
+      this.points = grouped;
 
       this.initMap();
     });
+  
   }
 
   ngOnChanges(changes: SimpleChanges){
@@ -166,24 +191,16 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     });
   }
   private createAnnotationsListeners(){
-    const customIcon = L.icon({
-      iconUrl: 'assets/images/leaflet/marker-icon.png',
-      iconRetinaUrl: 'assets/images/leaflet/marker-icon-2x.png',
-      shadowUrl: 'assets/images/leaflet/marker-shadow.png',
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41]
-    });
 
     this.map.on('click', (e)=>{
       this.newPoint.emit([e.latlng.lat,e.latlng.lng]);
+      this.assignPointToPolygon(e.latlng.lat,e.latlng.lng)
       if (this.currentMarker) {
         this.map.removeLayer(this.currentMarker);
       }
 
       this.currentMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(this.map).bindTooltip("Zona de nueva anotación seleccionada", { permanent: true });
-      this.currentMarker.setIcon(customIcon);
+      this.currentMarker.setIcon(this.customIcon);
       this.currentMarker.addEventListener('click',()=>{
         this.map.removeLayer(this.currentMarker);
         this.newPoint.emit(null);
@@ -232,6 +249,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
     annotationMarker.on('click', (e: L.LeafletMouseEvent) => {
       L.DomEvent.stop(e);
+
+      this.assignPointToPolygon(annotation.latitude, annotation.longitude);
       this.selectedPoint.emit(annotation);
       if (this.currentMarker) {
         this.map.removeLayer(this.currentMarker);
@@ -262,5 +281,59 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       return this.createColoredIcon(foundCategory.name);
     }
     return this.customIcon;
+  }
+
+  assignPointToPolygon(latitude: number, longitude: number){
+    // Guard against missing or empty point data
+    if (!this.points || Object.keys(this.points).length === 0) {
+      if (this.currentPolygon){
+        this.map.removeLayer(this.currentPolygon);
+      }
+      this.newNeighborhood.emit(null);
+      return;
+    }
+
+    let polygonPoints: Point[] = [];
+
+    Object.entries(this.points).forEach(([key, points]) => {
+      const isInThisNeighborhood = isPointInPolygon(
+        latitude,
+        longitude,
+        points
+      );
+
+      if (isInThisNeighborhood) {
+        polygonPoints = points;
+      }
+    });
+
+    if (polygonPoints.length > 0) {
+      this.neighborhoodService.getById(polygonPoints[0].id_neighborhood as number).subscribe(neighborhood => {
+
+        const polygon: NeighborhoodPolygon ={
+          id_neighborhood: neighborhood.id_neighborhood as number,
+          name_neighborhood: neighborhood.name,
+          id_commune: neighborhood.id_commune,
+          polygon_points: polygonPoints,
+        }
+
+        this.newNeighborhood.emit(polygon);
+
+        const coords = polygon.polygon_points.map(p => [p.latitude, p.longitude] as [number, number]);
+        if (this.currentPolygon){
+          this.map.removeLayer(this.currentPolygon);
+        }
+
+        this.currentPolygon = L.polygon(coords).addTo(this.map).bindTooltip(neighborhood.name);
+      })
+
+    } else {
+      if (this.currentPolygon){
+        this.map.removeLayer(this.currentPolygon);
+      }
+      this.newNeighborhood.emit(null);
+    }
+
+
   }
 }

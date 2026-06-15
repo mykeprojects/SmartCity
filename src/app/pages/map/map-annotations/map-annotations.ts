@@ -12,6 +12,8 @@ import { InterestedPartyService } from 'src/app/services/territorial/interested-
 import { EvidenceService } from 'src/app/services/territorial/evidence.service';
 import { VoteFormComponent } from 'src/app/components/votes/vote-form/vote-form.component';
 import { CategoryFilterComponent } from 'src/app/components/annotations/category-filter/category-filter.component';
+import { NeighborhoodPolygon } from 'src/app/models/territorial/neighborhoodPolygon';
+import { NeighborhoodService } from 'src/app/services/territorial/neighborhood.service';
 
 @Component({
   selector: 'app-map-annotations',
@@ -22,11 +24,14 @@ import { CategoryFilterComponent } from 'src/app/components/annotations/category
 })
 
 export class MapAnnotationsViewer {
-    constructor(private citizenService: CitizenService, private annotationCategoryService: AnnotationCategoryService, private interestedPartiesService: InterestedPartyService, private evidenceService: EvidenceService){}
+    constructor(private citizenService: CitizenService, private annotationCategoryService: AnnotationCategoryService,
+        private interestedPartiesService: InterestedPartyService, private evidenceService: EvidenceService,
+        private neighborhoodService: NeighborhoodService){}
     selectedPointCoordinates: [number, number] | null = null;
     selectedAnnotation: AnnotationForDisplay | null = null;
     mapRefreshTrigger: number = 0;
     selectedCategories: number[];
+    currentNeighborhood: NeighborhoodPolygon | null;
 
     selectNewPoint(coords: [number,number] | null){
         this.selectedPointCoordinates = coords;
@@ -40,6 +45,16 @@ export class MapAnnotationsViewer {
             this.selectedPointCoordinates = null;
 
             const citizen = await firstValueFrom( this.citizenService.getById(newAnnotation.id_citizen));
+
+            let neighborhood: any = { name: 'Sin barrio asignado' };
+            if (newAnnotation.id_neighborhood) {
+                try {
+                    neighborhood = await firstValueFrom(this.neighborhoodService.getById(newAnnotation.id_neighborhood));
+                } catch (err) {
+                    console.error('Error fetching neighborhood:', err);
+                    neighborhood = { name: 'Sin barrio asignado' };
+                }
+            }
 
             const date = new Date(newAnnotation.registration_date).toLocaleString('es-CO');
 
@@ -56,7 +71,7 @@ export class MapAnnotationsViewer {
                         description: newAnnotation.description,
                         id_annotation: newAnnotation.id_annotation,
                         citizen_name: citizen.name,
-                        neighborhood_name: "No hay servicio de barrios todavía :c",
+                        neighborhood_name: neighborhood.name ?? "Sin barrio asignado",
                         latitude: newAnnotation.latitude,
                         longitude: newAnnotation.longitude,
                         registration_date: date,
@@ -104,7 +119,7 @@ export class MapAnnotationsViewer {
                         description: newAnnotation.description,
                         id_annotation: newAnnotation.id_annotation,
                         citizen_name: citizen.name,
-                        neighborhood_name: "No hay servicio de barrios todavía :c",
+                        neighborhood_name: "",
                         latitude: newAnnotation.latitude,
                         longitude: newAnnotation.longitude,
                         registration_date: date,
@@ -135,6 +150,10 @@ export class MapAnnotationsViewer {
 
     handleFilterChange(categories: number[]){
         this.selectedCategories = categories;
+    }
+
+    handleNewNeighborhood(newNeighborhood: NeighborhoodPolygon | null){
+        this.currentNeighborhood = newNeighborhood;
     }
 
 }
