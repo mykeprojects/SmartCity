@@ -17,7 +17,7 @@ export const navItems: NavItem[] = [
   {
     displayName: 'Mapa',
     iconName: 'material-symbols:map-outline',
-    route: '/map/tracking',
+    route: '/map/overview',
   },
 
   {
