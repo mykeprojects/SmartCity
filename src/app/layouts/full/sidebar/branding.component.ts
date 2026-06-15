@@ -7,7 +7,7 @@ import { CoreService } from 'src/app/services/core.service';
   template: `
     <a href="/" class="logodark">
       <img
-        src="./assets/images/logos/dark-logo.svg"
+        src="./assets/images/logos/dark-logo.png"
         class="align-middle m-2"
         alt="logo"
       />
@@ -15,7 +15,7 @@ import { CoreService } from 'src/app/services/core.service';
 
     <a href="/" class="logolight">
       <img
-        src="./assets/images/logos/light-logo.svg"
+        src="./assets/images/logos/light-logo.png"
         class="align-middle m-2"
         alt="logo"
       />
