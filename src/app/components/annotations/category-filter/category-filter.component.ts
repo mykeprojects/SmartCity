@@ -1,6 +1,6 @@
 
 import { CategoryNode } from 'src/app/models/territorial/categoryNode';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { MatTreeModule } from '@angular/material/tree';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -32,7 +32,7 @@ import { Category } from 'src/app/models/territorial/category';
   styleUrl: './category-filter.component.scss',
   standalone: true,
 })
-export class CategoryFilterComponent implements OnInit {
+export class CategoryFilterComponent implements OnInit, OnChanges {
   categories: CategoryNode[] = [];
   treeControl = new NestedTreeControl<CategoryNode>(node => node.children);
   dataSource = new MatTreeNestedDataSource<CategoryNode>();
@@ -46,6 +46,7 @@ export class CategoryFilterComponent implements OnInit {
   selectedCommune: number | null;
   selectedNeighborhood: number | null;
 
+  @Input() refreshTrigger?: number;
   @Output() selectedCategories = new EventEmitter<number[]>();
   @Output() currentCommune = new EventEmitter<number | null>;
   @Output() currentNeighborhood = new EventEmitter<number | null>;
@@ -54,6 +55,16 @@ export class CategoryFilterComponent implements OnInit {
     private neighborhoodService: NeighborhoodService, private communeService: CommuneService, private annotationService: AnnotationService){}
 
   ngOnInit() {
+    this.fetchData()
+  }
+
+ ngOnChanges(changes: SimpleChanges){
+    if (changes['refreshTrigger']){
+      this.fetchData();
+    }
+ }
+
+  private fetchData(){
     forkJoin({
       categories: this.categoryService.getAll(),
       annotationCategories: this.annotationCategoryService.getAll(),
