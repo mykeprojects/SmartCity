@@ -23,6 +23,7 @@ import { InterestedParty } from 'src/app/models/territorial/interested-party';
 import { EvidenceService } from 'src/app/services/territorial/evidence.service';
 import { Evidence } from 'src/app/models/territorial/evidence';
 import { environment } from 'src/environments/environments';
+import { NeighborhoodPolygon } from 'src/app/models/territorial/neighborhoodPolygon';
 @Component({
   selector: 'app-map-annotation-form',
   imports: [MapComponent, ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatSelectModule],
@@ -33,6 +34,7 @@ import { environment } from 'src/environments/environments';
 export class AnnotationForm implements OnInit{
   @Input() annotationForDisplay?: AnnotationForDisplay | null; 
   @Input() coordinates?: [number, number] | null;
+  @Input() currentNeighborhood?: NeighborhoodPolygon | null;
   @Output() formSubmit = new EventEmitter<Annotation>();
 
   form!: FormGroup;
@@ -128,15 +130,18 @@ export class AnnotationForm implements OnInit{
       }
   }
   private cleanForm(){
+      this.form.get('category')?.enable();
+      this.form.get('subCategory')?.enable();
+      this.form.get('description')?.enable();
       this.form.patchValue({
         neighborhood: null,
         status: 'active',
         description: null,
-        images: null
+        images: null,
+        category: null,
+        subCategory: null,
+        entities: [],
       });
-      this.form.get('category')?.enable();
-      this.form.get('subCategory')?.enable();
-      this.form.get('description')?.enable();
       this.previews = [];
   }
 
@@ -152,13 +157,22 @@ export class AnnotationForm implements OnInit{
           this.cleanForm();
         }
       }
+      else {
+        this.cleanForm();
+      }
+    }
     if (changes['coordinates']){
       if (this.coordinates){
         this.isViewMode = false;
         console.log(("entró"))
         this.cleanForm();
       }
+      else{
+        this.cleanForm();
+      }
     }
+    if (changes['currentNeighborhood']){
+      this.patchFormWithNeighborhood();
     }
   }
 
@@ -181,6 +195,7 @@ export class AnnotationForm implements OnInit{
       if(this.coordinates){
         const annotation: Partial<Annotation> = {
           description: this.form.value.description,
+          id_neighborhood: this.currentNeighborhood?.id_neighborhood,
           id_citizen: userId,
           latitude: this.coordinates[0],
           longitude: this.coordinates[1],
@@ -201,56 +216,14 @@ export class AnnotationForm implements OnInit{
             if (result.isDenied) {
               return;
             }
-            let createdAnnotation: Annotation;
-            this.annotationService.create(annotation).subscribe(newAnnotation=>{
-              createdAnnotation = newAnnotation;
-              
-              const saveTasks = [];
 
-              // Determine category id (prefer subCategory if present). Ensure it's a valid number before creating.
-              const rawCat = this.form.getRawValue().subCategory ?? this.form.getRawValue().category;
-              const categoryId = rawCat === null || rawCat === undefined || rawCat === '' ? undefined : Number(rawCat);
-              if (categoryId && !Number.isNaN(categoryId)) {
-                const annotationCategory: AnnotationCategory = {
-                  id_annotation: createdAnnotation.id_annotation,
-                  id_category: categoryId,
-                };
-
-                saveTasks.push(this.annotationCategoryService.create(annotationCategory));
-              } else {
-                console.warn('No valid category selected for annotation', createdAnnotation.id_annotation, rawCat);
-              }
-
-              const entities: number[] = this.form.getRawValue().entities ?? [];
-
-              entities.forEach(entity => {
-                const link: Partial<InterestedParty> = {
-                  id_annotation: createdAnnotation.id_annotation,
-                  id_entity: entity,
-                };
-
-                saveTasks.push(this.interestedPartyService.create(link));
-              });
-
-              const files: File[] = this.form.getRawValue().images || [];
-              files.forEach(file => {
-                const evidence: Partial<Evidence> = {
-                  id_annotation: createdAnnotation.id_annotation,
-                  file_type: file.type,
-                  file_size: file.size
-                };
-                saveTasks.push(this.evidenceService.create(evidence, file));
-              });
-
-              if (saveTasks.length > 0) {
-                forkJoin(saveTasks).subscribe(() => {
-                  this.formSubmit.emit(newAnnotation);
-                });
-              } else {
-                this.formSubmit.emit(newAnnotation);
-              }
-            });
+            this.submitAnnotation(annotation);
+            
           });
+          
+        }
+        else{
+          this.submitAnnotation(annotation);
         }
       }
 
@@ -287,6 +260,83 @@ export class AnnotationForm implements OnInit{
     // opcional: reset input
     input.value = '';
   }
+
+  patchFormWithNeighborhood(){
+    if (this.currentNeighborhood){
+      this.form.get('neighborhood')?.enable();
+      this.form.get('neighborhood')?.setValue(this.currentNeighborhood.name_neighborhood);
+      this.form.get('neighborhood')?.disable();
+    }
+    else {
+      this.form.get('neighborhood')?.enable();
+      this.form.get('neighborhood')?.setValue("Sin barrio asociado");
+      this.form.get('neighborhood')?.disable();
+    }
+
+  }
+
+  submitAnnotation(annotation: Partial<Annotation>){
+
+    this.annotationService.create(annotation).subscribe(newAnnotation=>{
+      const createdAnnotation = newAnnotation;
+      
+      const saveTasks = [];
+
+      // Determine category id (prefer subCategory if present). Ensure it's a valid number before creating.
+      const rawCat = this.form.getRawValue().subCategory ?? this.form.getRawValue().category;
+      if (!rawCat) {
+        Swal.fire({
+          title: 'Error',
+          text: 'Debe seleccionar una categoría',
+          icon: 'error'
+        });
+        return;
+      }
+      const categoryId = rawCat === null || rawCat === undefined || rawCat === '' ? undefined : Number(rawCat);
+      if (categoryId && !Number.isNaN(categoryId)) {
+        const annotationCategory: AnnotationCategory = {
+          id_annotation: createdAnnotation.id_annotation,
+          id_category: categoryId,
+        };
+
+        saveTasks.push(this.annotationCategoryService.create(annotationCategory));
+        console.log(annotationCategory);
+        console.log(rawCat);
+      } else {
+        console.warn('No valid category selected for annotation', createdAnnotation.id_annotation, rawCat);
+      }
+
+      const entities: number[] = this.form.getRawValue().entities ?? [];
+
+      entities.forEach(entity => {
+        const link: Partial<InterestedParty> = {
+          id_annotation: createdAnnotation.id_annotation,
+          id_entity: entity,
+        };
+
+        saveTasks.push(this.interestedPartyService.create(link));
+      });
+
+      const files: File[] = this.form.getRawValue().images || [];
+      files.forEach(file => {
+        const evidence: Partial<Evidence> = {
+          id_annotation: createdAnnotation.id_annotation,
+          file_type: file.type,
+          file_size: file.size
+        };
+        saveTasks.push(this.evidenceService.create(evidence, file));
+      });
+
+      if (saveTasks.length > 0) {
+        forkJoin(saveTasks).subscribe(() => {
+          this.formSubmit.emit(newAnnotation);
+          this.cleanForm(); 
+        });
+      } else {
+        this.formSubmit.emit(newAnnotation);
+        this.cleanForm(); 
+      }
+    });
+
+  }
 }
-
-

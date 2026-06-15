@@ -109,6 +109,7 @@ export class VoteFormComponent {
           this.voteService.create(newVote).subscribe(vote =>{
             this.hasCommented = true;
             this.currentUserVote = vote;
+            this.currentAnnotationUpdate();
           });
 
         }
