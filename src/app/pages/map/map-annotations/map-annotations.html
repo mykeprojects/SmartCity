@@ -4,13 +4,18 @@
 
     <div class="md:w-3/5 flex flex-col bg-gray-100 overflow-hidden min-h-0">
       <div class="h-1/4 min-h-[120px] p-4 border-b bg-white overflow-auto">
-        <app-category-filter (selectedCategories)="handleFilterChange($event)"></app-category-filter>
+        <app-category-filter (selectedCategories)="handleFilterChange($event)"
+            (currentCommune)="handleSelectedCommune($event)"
+            (currentNeighborhood)="handleSelectedNeighborhood($event)">
+        </app-category-filter>
       </div>
       <div class="flex-1 overflow-hidden min-h-0">
         <app-map
           [mapRefreshTrigger]="mapRefreshTrigger"
           [isAnnotationMode]="true"
           [currentCategories]="selectedCategories"
+          [filterSelectedCommune] = "selectedCommune"
+          [filterSelectedNeighborhood]="selectedNeighborhood"
           (newPoint)="selectNewPoint($event)"
           (selectedPoint)="selectNewAnnotation($event)"
           (newNeighborhood)="handleNewNeighborhood($event)">

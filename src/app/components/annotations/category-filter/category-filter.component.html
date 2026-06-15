@@ -1,4 +1,45 @@
-<mat-label class="mb-2 block text-base font-medium">Seleccionar categorías para ver</mat-label>
+<button mat-button (click)="handleRefresh()">
+  <mat-icon>refresh</mat-icon>
+  Eliminar filtros
+</button>
+
+<mat-label class="mb-2 block text-base font-medium">
+  Filtrar por área
+</mat-label>
+
+<div class="flex gap-4 mb-4">
+
+  <mat-form-field appearance="outline" class="w-1/2">
+    <mat-label>Comuna</mat-label>
+    <mat-select [(value)]="selectedCommune" (selectionChange)="handleCommuneChange($event.value)">
+        <mat-option [value]="null">Ninguna</mat-option>
+        @for (commune of communes; track commune.id_commune){
+            <mat-option [value]="commune.id_commune">
+                {{ commune.name }}
+            </mat-option>
+        }
+    </mat-select>
+  </mat-form-field>
+
+  @if (selectedCommune){
+    <mat-form-field appearance="outline" class="w-1/2">
+        <mat-label>Barrio</mat-label>
+        <mat-select [(value)]="selectedNeighborhood" (selectionChange)="handleNeighborhoodChange($event.value)">
+            <mat-option [value]="null">Ninguno</mat-option>
+            @for (neighborhood of selectedCommuneNeighborhoods; track neighborhood.id_neighborhood){
+                <mat-option [value]="neighborhood.id_neighborhood">
+                    {{ neighborhood.name }}
+                </mat-option>
+            }
+        </mat-select>
+  </mat-form-field>
+
+  }
+
+</div>
+<mat-label class="mb-2 block text-base font-medium">
+  Filtrar por categorías
+</mat-label>
 
 <mat-tree
   [dataSource]="dataSource"

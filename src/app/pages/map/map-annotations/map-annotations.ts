@@ -32,6 +32,8 @@ export class MapAnnotationsViewer {
     mapRefreshTrigger: number = 0;
     selectedCategories: number[];
     currentNeighborhood: NeighborhoodPolygon | null;
+    selectedNeighborhood: number | null;
+    selectedCommune: number | null;
 
     selectNewPoint(coords: [number,number] | null){
         this.selectedPointCoordinates = coords;
@@ -154,6 +156,12 @@ export class MapAnnotationsViewer {
 
     handleNewNeighborhood(newNeighborhood: NeighborhoodPolygon | null){
         this.currentNeighborhood = newNeighborhood;
+    }
+    handleSelectedNeighborhood(newSelectedNeighborhood: number | null){
+        this.selectedNeighborhood = newSelectedNeighborhood;
+    }
+    handleSelectedCommune(newSelectedCommune: number | null){
+        this.selectedCommune = newSelectedCommune;
     }
 
 }
