@@ -13,6 +13,7 @@ import { Point } from 'src/app/models/territorial/point';
 import { PointService } from 'src/app/services/territorial/point.service';
 import { NeighborhoodPolygon } from 'src/app/models/territorial/neighborhoodPolygon';
 import { NeighborhoodService } from 'src/app/services/territorial/neighborhood.service';
+import { Neighborhood } from 'src/app/models/territorial/neighborhood';
 
 @Component({
   selector: 'app-map',
@@ -33,6 +34,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   @Input() currentCategories?: number[];
   @Input() isAnnotationMode?: boolean;
   @Input() mapRefreshTrigger?: number;
+  @Input() filterSelectedCommune?: number | null;
+  @Input() filterSelectedNeighborhood?: number | null;
   @Output() newPoint = new EventEmitter<[number,number] | null>;
   @Output() selectedPoint = new EventEmitter<Annotation>;
   @Output() newNeighborhood = new EventEmitter<NeighborhoodPolygon | null>
@@ -50,6 +53,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private categories: Category[];
   private annotationCategories: AnnotationCategory[];
   private points: Record<string, Point[]>;
+  private neighborhoods: Neighborhood[];
 
   private customIcon = L.icon({
     iconUrl: 'assets/images/leaflet/marker-icon.png',
@@ -66,9 +70,11 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       categories: this.categoryService.getAll(),
       annotationCategories: this.annotationCategoryService.getAll(),
       points: this.pointService.getAll(),
+      neighborhoods: this.neighborhoodService.getAll(),
     }).subscribe(result => {
       this.categories = result.categories;
       this.annotationCategories = result.annotationCategories;
+      this.neighborhoods = result.neighborhoods;
       const points = result.points.filter(point => point.point_type === "boundary")
       const grouped = points.reduce((acc, item) => {
         const key = item.id_neighborhood as number;
@@ -93,7 +99,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.fetchAnnotations();
     }
 
-    if (changes['currentCategories'] && this.map){
+    if (changes['currentCategories'] || changes['filterSelectedCommune'] || changes['filterSelectedNeighborhood'] && this.map){
       this.fetchAnnotations();
     }
   }
@@ -164,8 +170,9 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       annotations.forEach(annotationFetched => {
 
         const categoryId = annotationToCategory.get(annotationFetched.id_annotation);
+        let isNeighborhoodAllowed = this.isAnnotationNeighborhoodAllowed(annotationFetched);
 
-        const isAllowed = allowedCategories.size === 0 || (categoryId !== undefined && allowedCategories.has(categoryId));
+        const isAllowed = (isNeighborhoodAllowed && (allowedCategories.size === 0 || (categoryId !== undefined && allowedCategories.has(categoryId))));
 
         const found = this.annotations.find(annotationMarked =>
           annotationFetched.id_annotation === annotationMarked.annotation.id_annotation
@@ -335,5 +342,34 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     }
 
 
+  }
+
+  filterNeighborhoods(): Neighborhood[]{
+    const filteredNeighborhoods: Neighborhood[] = [];
+    if (!this.filterSelectedCommune){
+      return this.neighborhoods;
+    }
+    else {
+      if (!this.filterSelectedNeighborhood){
+        return this.neighborhoods.filter(neighborhood => neighborhood.id_commune === this.filterSelectedCommune)
+      }
+      const selectedNeighborhood = this.neighborhoods.find(neighborhood => neighborhood.id_neighborhood === this.filterSelectedNeighborhood)
+      if (selectedNeighborhood){
+        filteredNeighborhoods.push(selectedNeighborhood);
+      }
+    }
+    return filteredNeighborhoods;
+  }
+
+  isAnnotationNeighborhoodAllowed(annotation: Annotation): boolean{
+    if (!this.filterSelectedCommune){
+      return true;
+    }
+    if (!annotation.id_neighborhood){
+      return false;
+    }
+    const allowedNeighborhoods = this.filterNeighborhoods();
+    const found = allowedNeighborhoods.find(neighborhood => neighborhood.id_neighborhood === annotation.id_neighborhood)
+    return (!!found);
   }
 }
