@@ -4,7 +4,7 @@ import { catchError, map } from 'rxjs/operators';
 
 import { OfficialService } from './official.service';
 import { InterestedPartyService } from './interested-party.service';
-import { AnnotationService } from './annotation.service';
+import { AnnotationService } from '../annotations/annotation.service';
 import { CategoryService } from './category.service';
 import { AnnotationCategoryService } from './annotation-category.service';
 import { NeighborhoodService } from './neighborhood.service';

@@ -21,7 +21,7 @@ import { NeighborhoodService } from 'src/app/services/territorial/neighborhood.s
 import { CommuneService } from 'src/app/services/territorial/commune.service';
 import { MatOption } from '@angular/material/select';
 import { Annotation } from 'src/app/models/annotations/annotation';
-import { AnnotationService } from 'src/app/services/territorial/annotation.service';
+import { AnnotationService } from 'src/app/services/annotations/annotation.service';
 import { Category } from 'src/app/models/territorial/category';
 
 
@@ -70,7 +70,7 @@ export class CategoryFilterComponent implements OnInit, OnChanges {
       annotationCategories: this.annotationCategoryService.getAll(),
       neighborhoods: this.neighborhoodService.getAll(),
       communes: this.communeService.getAll(),
-      annotations: this.annotationService.getAll(),
+      annotations: this.annotationService.getAnnotations(),
     }).subscribe(({ categories, annotationCategories, neighborhoods, communes, annotations }) => {
       this.neighborhoods = neighborhoods;
       this.communes = communes;
