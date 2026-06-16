@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { NeighborhoodService } from 'src/app/services/territorial/neighborhood.service';
 import { PointService } from 'src/app/services/territorial/point.service';
 import { CommuneService } from 'src/app/services/territorial/commune.service';
-import { AnnotationService } from 'src/app/services/territorial/annotation.service';
+import { AnnotationService } from 'src/app/services/annotations/annotation.service';
 import { Neighborhood } from 'src/app/models/territorial/neighborhood';
 import { DynamicTableComponent } from 'src/app/components/ui/table/dynamic-table/dynamic-table.component';
 import { ColumnDef } from 'src/app/models/component-dynamic-table/column-def';

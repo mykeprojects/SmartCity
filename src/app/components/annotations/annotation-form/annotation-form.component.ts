@@ -13,7 +13,7 @@ import { CategoryService } from 'src/app/services/territorial/category.service';
 import { Entity } from 'src/app/models/territorial/entity';
 import { EntityService } from 'src/app/services/territorial/entity.service';
 import { SecurityService } from 'src/app/services/security.service';
-import { AnnotationService } from 'src/app/services/territorial/annotation.service';
+import { AnnotationService } from 'src/app/services/annotations/annotation.service';
 import Swal from 'sweetalert2';
 import { forkJoin } from 'rxjs';
 import { AnnotationCategoryService } from 'src/app/services/territorial/annotation-category.service';
@@ -277,7 +277,7 @@ export class AnnotationForm implements OnInit{
 
   submitAnnotation(annotation: Partial<Annotation>){
 
-    this.annotationService.create(annotation).subscribe(newAnnotation=>{
+    this.annotationService.createAnnotation(annotation).subscribe(newAnnotation=>{
       const createdAnnotation = newAnnotation;
       
       const saveTasks = [];
