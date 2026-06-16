@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { BlankComponent } from './layouts/blank/blank.component';
 import { FullComponent } from './layouts/full/full.component';
 import { AuthenticatedGuard } from './guards/authenticated.guard';
+import { AdminGuard } from './guards/admin.guard';
 import { GenerateReport } from './pages/reports/generate-report';
 import { NoAuthenticatedGuard } from './guards/no-authenticated.guard';
 import { MapLayoutComponent } from './layouts/map-layout/map-layout.component';
@@ -99,7 +100,7 @@ export const routes: Routes = [
       },
       {
         path: 'admin',
-        canActivateChild: [AuthenticatedGuard],
+        canActivateChild: [AuthenticatedGuard, AdminGuard],
         loadChildren: () =>
           import('./pages/admin/admin.routes').then((m) => m.AdminRoutes),
       },

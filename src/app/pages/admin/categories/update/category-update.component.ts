@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Category } from 'src/app/models/territorial/category';
 import { CategoryService } from 'src/app/services/territorial/category.service';
-import { CategoryFormComponent, CategoryFormPayload } from '../components/category-form/category-form.component';
+import { CategoryFormComponent } from '../components/category-form/category-form.component';
+import { CategoryFormPayload } from 'src/app/models/admin/category-form-payload';
 import { showApiError, showSuccess } from 'src/app/services/territorial/territorial-api.util';
 
 @Component({

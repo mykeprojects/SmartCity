@@ -2,9 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environments';
-import { Annotation } from 'src/app/models/annotations/annotation';
+import { Annotation } from 'src/app/models/territorial/annotation';
 import { PagedResponse } from 'src/app/models/territorial/paged-response';
-import { buildPagedParams } from './territorial-api.util';
+import { buildPagedParams } from './api.util';
 
 @Injectable({ providedIn: 'root' })
 export class AnnotationService {
@@ -12,32 +12,44 @@ export class AnnotationService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(): Observable<Annotation[]>{
-    return this.http.get<Annotation[]>(`${this.apiUrl}`);
+  getAll(): Observable<Annotation[]> {
+    return this.http.get<Annotation[]>(this.apiUrl);
   }
 
-  search(page: number, pageSize: number,filters: Record<string, string>): Observable<PagedResponse<Annotation>> {
+  getById(id: number): Observable<Annotation> {
+    return this.http.get<Annotation>(`${this.apiUrl}/${id}`);
+  }
+
+  search(
+    page: number,
+    pageSize: number,
+    filters: Record<string, string>
+  ): Observable<PagedResponse<Annotation>> {
     return this.http.get<PagedResponse<Annotation>>(`${this.apiUrl}/search`, {
       params: buildPagedParams(page, pageSize, filters),
     });
   }
 
-  create(annotation: Partial<Annotation>): Observable<Annotation>{
-    return this.http.post<Annotation>(`${this.apiUrl}`,annotation);
-  }
-  
-  searchFilter(filters: Record<string, any>): Observable<Annotation[]> {
-    const filterUrl = `${this.apiUrl}/search`;
-    
-    // Construye los HttpParams recorriendo dinámicamente cada clave del objeto
+  searchFilter(filters: Record<string, string | number>): Observable<Annotation[]> {
     const params = Object.keys(filters).reduce((httpParams, key) => {
       const value = filters[key];
-      // Evita enviar parámetros nulos o indefinidos si no lo deseas
-      return value !== undefined && value !== null 
-        ? httpParams.set(key, value.toString()) 
+      return value !== undefined && value !== null
+        ? httpParams.set(key, value.toString())
         : httpParams;
     }, new HttpParams());
 
-    return this.http.get<Annotation[]>(filterUrl, { params });
+    return this.http.get<Annotation[]>(`${this.apiUrl}/search`, { params });
+  }
+
+  create(annotation: Partial<Annotation>): Observable<Annotation> {
+    return this.http.post<Annotation>(this.apiUrl, annotation);
+  }
+
+  update(id: number, annotation: Partial<Annotation>): Observable<Annotation> {
+    return this.http.put<Annotation>(`${this.apiUrl}/${id}`, annotation);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

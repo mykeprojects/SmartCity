@@ -7,7 +7,7 @@ import { AnnotationService } from 'src/app/services/territorial/annotation.servi
 import { Neighborhood } from 'src/app/models/territorial/neighborhood';
 import { DynamicTableComponent } from 'src/app/components/ui/table/dynamic-table/dynamic-table.component';
 import { ColumnDef } from 'src/app/models/component-dynamic-table/column-def';
-import { ActionButton } from 'src/app/models/component-dynamic-table/action-button';
+import { ADMIN_TABLE_ACTIONS } from 'src/app/pages/admin/shared/admin-table-actions';
 import { TablePageEvent } from 'src/app/models/component-dynamic-table/table-page-event';
 import Swal from 'sweetalert2';
 import { Router } from '@angular/router';
@@ -41,20 +41,7 @@ export class ListComponent implements OnInit {
     {header: 'Estado', key: 'status'}
   ]
 
-  actions: ActionButton[] = [
-    {
-      id: 'edit',
-      label: 'Editar',
-      icon: 'heroPencil',
-      class: 'flex-1 px-2 py-1 rounded bg-yellow-400 text-black cursor-pointer flex items-center justify-center gap-1'
-    },
-    {
-      id: 'delete',
-      label: 'Eliminar',
-      icon: 'heroTrash',
-      class: 'flex-1 px-2 py-1 rounded bg-red-500 text-white cursor-pointer flex items-center justify-center gap-1'
-    }
-  ]
+  actions = ADMIN_TABLE_ACTIONS.filter((action) => action.id !== 'view');
 
   constructor(private neighborhoodService: NeighborhoodService, 
               private router: Router,

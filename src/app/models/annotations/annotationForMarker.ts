@@ -1,4 +1,4 @@
-import { Annotation } from "./annotation";
+import { Annotation } from '../territorial/annotation';
 import * as L from 'leaflet';
 
 export interface AnnotationForMarker{

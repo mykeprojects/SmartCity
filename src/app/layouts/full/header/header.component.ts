@@ -4,9 +4,11 @@ import {
   EventEmitter,
   Input,
   ViewEncapsulation,
-  OnDestroy,
   OnInit,
+  inject,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { CoreService } from 'src/app/services/core.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -19,7 +21,6 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { AppSettings } from 'src/app/config';
-import { Subscription } from 'rxjs/internal/Subscription';
 import { SecurityService } from 'src/app/services/security.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { User } from '@angular/fire/auth';
@@ -42,7 +43,8 @@ interface notifications {
   templateUrl: './header.component.html',
   encapsulation: ViewEncapsulation.None
 })
-export class HeaderComponent implements OnInit, OnDestroy {
+export class HeaderComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   @Input() showToggle = true;
   @Input() toggleChecked = false;
   @Output() toggleMobileNav = new EventEmitter<void>();
@@ -66,29 +68,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   user: User | null = null;
-  private userSubscription?: Subscription;
 
   ngOnInit(): void {
-    this.userSubscription = this.securityService
+    this.securityService
       .getUser()
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((user) => {
-        console.log('👤 Usuario actual en HeaderComponent:', user);
         this.user = user;
       });
-    //WebSocket
-      console.log('HeaderComponent ngOnInit: suscribiéndose a notificaciones...');
-          this.notificationService
-      .onNewNotification("new_notification") //Aqui es donde indicamos a que tópico nos suscribimos
-      .subscribe((data: any) => {
 
-        console.log('Notificación recibida:', data);
-
+    this.notificationService
+      .onNewNotification('new_notification')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data: notifications) => {
         this.notifications.push(data);
       });
-  }
-  
-  ngOnDestroy(): void {
-    this.userSubscription?.unsubscribe();
   }
 
   options = this.settings.getOptions();

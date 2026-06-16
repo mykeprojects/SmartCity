@@ -10,12 +10,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
 import { Entity } from 'src/app/models/territorial/entity';
+import { EntityFormPayload } from 'src/app/models/admin/entity-form-payload';
 import { showImagePreview, territorialImageUrl } from 'src/app/services/territorial/territorial-api.util';
-
-export interface EntityFormPayload {
-  entity: Partial<Entity>;
-  logoFile?: File;
-}
 
 @Component({
   selector: 'app-entity-form',

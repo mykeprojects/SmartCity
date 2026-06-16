@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, Input, Output, OnDestroy, ViewChild, EventEmitter, SimpleChange, SimpleChanges } from '@angular/core';
-import { Annotation } from 'src/app/models/annotations/annotation';
+import { Annotation } from 'src/app/models/territorial/annotation';
 import { AnnotationForMarker } from 'src/app/models/annotations/annotationForMarker';
 import { AnnotationService } from 'src/app/services/territorial/annotation.service';
 import * as L from 'leaflet';

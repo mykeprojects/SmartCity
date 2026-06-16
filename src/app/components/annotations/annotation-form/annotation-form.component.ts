@@ -6,7 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
-import { Annotation } from 'src/app/models/annotations/annotation';
+import { Annotation } from 'src/app/models/territorial/annotation';
 import { AnnotationForDisplay } from 'src/app/models/annotations/annotationForDisplay';
 import { Category } from 'src/app/models/territorial/category';
 import { CategoryService } from 'src/app/services/territorial/category.service';
@@ -213,7 +213,7 @@ export class AnnotationForm implements OnInit{
               // Determine category id (prefer subCategory if present). Ensure it's a valid number before creating.
               const rawCat = this.form.getRawValue().subCategory ?? this.form.getRawValue().category;
               const categoryId = rawCat === null || rawCat === undefined || rawCat === '' ? undefined : Number(rawCat);
-              if (categoryId && !Number.isNaN(categoryId)) {
+              if (categoryId && !Number.isNaN(categoryId) && createdAnnotation.id_annotation) {
                 const annotationCategory: AnnotationCategory = {
                   id_annotation: createdAnnotation.id_annotation,
                   id_category: categoryId,
