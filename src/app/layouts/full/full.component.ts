@@ -1,5 +1,6 @@
 import { BreakpointObserver, MediaMatcher } from '@angular/cdk/layout';
-import { ChangeDetectorRef, Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, OnInit, ViewChild, ViewEncapsulation, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { MatSidenav, MatSidenavContent } from '@angular/material/sidenav';
 import { CoreService } from 'src/app/services/core.service';
@@ -184,7 +185,7 @@ export class FullComponent implements OnInit {
   ];
 
   user: User | null = null;
-  private userSubscription?: Subscription;
+  private readonly destroyRef = inject(DestroyRef);
 
 
   constructor(
@@ -229,13 +230,12 @@ export class FullComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.userSubscription = this.securityService
+    this.securityService
       .getUser()
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((user) => {
-        console.log('👤 Usuario actual en HeaderComponent:', user);
         this.user = user;
       });
-
   }
 
   ngOnDestroy() {

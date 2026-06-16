@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, Input, Output, OnDestroy, ViewChild, EventEmitter, SimpleChange, SimpleChanges } from '@angular/core';
-import { Annotation } from 'src/app/models/annotations/annotation';
+import { Annotation } from 'src/app/models/territorial/annotation';
 import { AnnotationForMarker } from 'src/app/models/annotations/annotationForMarker';
-import { AnnotationService } from 'src/app/services/annotations/annotation.service';
+import { AnnotationService } from 'src/app/services/territorial/annotation.service';
 import * as L from 'leaflet';
 import { CategoryService } from 'src/app/services/territorial/category.service';
 import { Category } from 'src/app/models/territorial/category';
@@ -156,6 +156,9 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.annotations.forEach(a => a.active = false);
 
       annotations.forEach(annotationFetched => {
+        if (!annotationFetched.id_annotation) {
+          return;
+        }
 
         const categoryId = annotationToCategory.get(annotationFetched.id_annotation);
         let isNeighborhoodAllowed = isAnnotationNeighborhoodAllowed(annotationFetched,this.neighborhoods,this.filterSelectedCommune,this.filterSelectedNeighborhood);

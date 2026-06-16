@@ -6,14 +6,14 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
-import { Annotation } from 'src/app/models/annotations/annotation';
+import { Annotation } from 'src/app/models/territorial/annotation';
 import { AnnotationForDisplay } from 'src/app/models/annotations/annotationForDisplay';
 import { Category } from 'src/app/models/territorial/category';
 import { CategoryService } from 'src/app/services/territorial/category.service';
 import { Entity } from 'src/app/models/territorial/entity';
 import { EntityService } from 'src/app/services/territorial/entity.service';
 import { SecurityService } from 'src/app/services/security.service';
-import { AnnotationService } from 'src/app/services/annotations/annotation.service';
+import { AnnotationService } from 'src/app/services/territorial/annotation.service';
 import Swal from 'sweetalert2';
 import { forkJoin } from 'rxjs';
 import { AnnotationCategoryService } from 'src/app/services/territorial/annotation-category.service';
@@ -218,7 +218,6 @@ export class AnnotationForm implements OnInit{
             }
 
             this.submitAnnotation(annotation);
-            
           });
           
         }
@@ -293,15 +292,13 @@ export class AnnotationForm implements OnInit{
         return;
       }
       const categoryId = rawCat === null || rawCat === undefined || rawCat === '' ? undefined : Number(rawCat);
-      if (categoryId && !Number.isNaN(categoryId)) {
+      if (categoryId && !Number.isNaN(categoryId) && createdAnnotation.id_annotation) {
         const annotationCategory: AnnotationCategory = {
           id_annotation: createdAnnotation.id_annotation,
           id_category: categoryId,
         };
 
         saveTasks.push(this.annotationCategoryService.create(annotationCategory));
-        console.log(annotationCategory);
-        console.log(rawCat);
       } else {
         console.warn('No valid category selected for annotation', createdAnnotation.id_annotation, rawCat);
       }
@@ -309,6 +306,7 @@ export class AnnotationForm implements OnInit{
       const entities: number[] = this.form.getRawValue().entities ?? [];
 
       entities.forEach(entity => {
+        if (!createdAnnotation.id_annotation) return;
         const link: Partial<InterestedParty> = {
           id_annotation: createdAnnotation.id_annotation,
           id_entity: entity,
@@ -319,10 +317,11 @@ export class AnnotationForm implements OnInit{
 
       const files: File[] = this.form.getRawValue().images || [];
       files.forEach(file => {
+        if (!createdAnnotation.id_annotation) return;
         const evidence: Partial<Evidence> = {
           id_annotation: createdAnnotation.id_annotation,
           file_type: file.type,
-          file_size: file.size
+          file_size: file.size,
         };
         saveTasks.push(this.evidenceService.create(evidence, file));
       });

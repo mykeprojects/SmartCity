@@ -1,5 +1,5 @@
 import { Point } from "src/app/models/territorial/point";
-import { Annotation } from "src/app/models/annotations/annotation";
+import { Annotation } from 'src/app/models/territorial/annotation';
 import { Neighborhood } from "src/app/models/territorial/neighborhood";
 import { AnnotationCategory } from "src/app/models/territorial/annotation-category";
 import { Category } from "src/app/models/territorial/category";

@@ -2,17 +2,13 @@ import { Injectable } from '@angular/core';
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
+import { DeleteCheckResult } from 'src/app/models/territorial/delete-check-result';
 import { OfficialService } from './official.service';
 import { InterestedPartyService } from './interested-party.service';
-import { AnnotationService } from '../annotations/annotation.service';
+import { AnnotationService } from './annotation.service';
 import { CategoryService } from './category.service';
 import { AnnotationCategoryService } from './annotation-category.service';
 import { NeighborhoodService } from './neighborhood.service';
-
-export interface DeleteCheckResult {
-  canDelete: boolean;
-  blockers: string[];
-}
 
 @Injectable({ providedIn: 'root' })
 export class DeleteValidationService {

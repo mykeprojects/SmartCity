@@ -20,8 +20,8 @@ import { Commune } from 'src/app/models/territorial/commune';
 import { NeighborhoodService } from 'src/app/services/territorial/neighborhood.service';
 import { CommuneService } from 'src/app/services/territorial/commune.service';
 import { MatOption } from '@angular/material/select';
-import { Annotation } from 'src/app/models/annotations/annotation';
-import { AnnotationService } from 'src/app/services/annotations/annotation.service';
+import { Annotation } from 'src/app/models/territorial/annotation';
+import { AnnotationService } from 'src/app/services/territorial/annotation.service';
 import { Category } from 'src/app/models/territorial/category';
 
 

@@ -9,13 +9,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
 import { Category } from 'src/app/models/territorial/category';
+import { CategoryFormPayload } from 'src/app/models/admin/category-form-payload';
 import { CategoryService } from 'src/app/services/territorial/category.service';
 import { showImagePreview, territorialImageUrl } from 'src/app/services/territorial/territorial-api.util';
-
-export interface CategoryFormPayload {
-  category: Partial<Category>;
-  imageFile?: File;
-}
 
 @Component({
   selector: 'app-category-form',
