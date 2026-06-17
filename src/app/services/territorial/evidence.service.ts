@@ -40,7 +40,7 @@ export class EvidenceService {
     return this.http.post<Evidence>(`${this.apiUrl}`, formData);
   }
 
-    getEvidencesByAnnotationId(annotationId: number): Observable<Evidence[] | null> {
+  getEvidencesByAnnotationId(annotationId: number): Observable<Evidence[] | null> {
     return this.getAll().pipe(
         map(evidences => {
         const filtered = evidences.filter(
@@ -50,5 +50,8 @@ export class EvidenceService {
         return filtered.length > 0 ? filtered : null;
         })
     );
-    }
+  }
+  delete(evidenceId: number): Observable<void>{
+    return this.http.delete<void>(`${this.apiUrl}/${evidenceId}`);
+  }
 }

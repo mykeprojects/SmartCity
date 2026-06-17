@@ -77,6 +77,7 @@ export class AnnotationDisplayMapper {
       description: annotation.description,
       id_annotation: annotation.id_annotation ?? 0,
       citizen_name: citizenName,
+      id_citizen: annotation.id_citizen,
       neighborhood_name: neighborhoodName,
       latitude: annotation.latitude,
       longitude: annotation.longitude,

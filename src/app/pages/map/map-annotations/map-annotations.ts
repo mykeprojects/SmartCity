@@ -49,10 +49,15 @@ export class MapAnnotationsViewer {
       });
   }
 
-  handleSubmit(newAnnotation: Annotation): void {
+  handleSubmit(newAnnotation: Annotation | null): void {
     this.selectNewAnnotation(newAnnotation);
     this.mapRefreshTrigger++;
-    showSuccess('Nueva anotación creada con éxito');
+    if (newAnnotation){
+      showSuccess('Nueva anotación creada con éxito');
+    }
+    else {
+      showSuccess('La anotación fue eliminada con éxito');
+    }
   }
 
   handleFilterChange(categories: number[]): void {

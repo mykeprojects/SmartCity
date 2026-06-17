@@ -146,4 +146,12 @@ export class VoteFormComponent {
       }
     }
   }
+
+  onDelete(){
+    if(this.currentUserVote){
+      this.voteService.delete(this.currentUserVote?.id_vote).subscribe(vote=>{
+        this.currentAnnotationUpdate();
+      })
+    }
+  }
 }

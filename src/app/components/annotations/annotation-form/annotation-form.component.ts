@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, SimpleChanges, OnChanges } from '@angular/core';
 import { MapComponent } from 'src/app/components/map/map/map.component';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,13 +15,7 @@ import { EntityService } from 'src/app/services/territorial/entity.service';
 import { SecurityService } from 'src/app/services/security.service';
 import { AnnotationService } from 'src/app/services/territorial/annotation.service';
 import Swal from 'sweetalert2';
-import { forkJoin } from 'rxjs';
-import { AnnotationCategoryService } from 'src/app/services/territorial/annotation-category.service';
-import { AnnotationCategory } from 'src/app/models/territorial/annotation-category';
-import { InterestedPartyService } from 'src/app/services/territorial/interested-party.service';
-import { InterestedParty } from 'src/app/models/territorial/interested-party';
-import { EvidenceService } from 'src/app/services/territorial/evidence.service';
-import { Evidence } from 'src/app/models/territorial/evidence';
+import { AnnotationFormService } from 'src/app/services/annotations/annotation-form.service';
 import { environment } from 'src/environments/environments';
 import { NeighborhoodPolygon } from 'src/app/models/territorial/neighborhoodPolygon';
 @Component({
@@ -31,14 +25,16 @@ import { NeighborhoodPolygon } from 'src/app/models/territorial/neighborhoodPoly
   styleUrl: './annotation-form.component.scss',
   standalone: true,
 })
-export class AnnotationForm implements OnInit{
+export class AnnotationForm implements OnInit, OnChanges{
   @Input() annotationForDisplay?: AnnotationForDisplay | null; 
   @Input() coordinates?: [number, number] | null;
   @Input() currentNeighborhood?: NeighborhoodPolygon | null;
-  @Output() formSubmit = new EventEmitter<Annotation>();
+  @Output() formSubmit = new EventEmitter<Annotation | null>();
 
   form!: FormGroup;
   isViewMode = false;
+  isEditing = false;
+  isAnnotationFromUser = false;
   categories: Category[] = [];
   subCategories: Category[] = [];
   entities: Entity[] = [];
@@ -48,8 +44,7 @@ export class AnnotationForm implements OnInit{
 
   constructor(private fb: FormBuilder,private categoryService: CategoryService,private entityService: EntityService,
     private securityService: SecurityService, private annotationService: AnnotationService,
-    private annotationCategoryService: AnnotationCategoryService, private interestedPartyService: InterestedPartyService,
-    private evidenceService: EvidenceService) { }
+    private annotationFormService: AnnotationFormService) { }
   
   ngOnInit() {
       this.categoryService.getParentCategories().subscribe(categories => {
@@ -61,7 +56,6 @@ export class AnnotationForm implements OnInit{
 
       this.initForm();
 
-      // Apply any input already received before ngOnInit ran
       if (this.annotationForDisplay) {
         this.patchFormWithAnnotation(this.annotationForDisplay);
       }
@@ -70,12 +64,12 @@ export class AnnotationForm implements OnInit{
   private initForm() {
       this.form = this.fb.group({
         neighborhood: [{value: this.annotationForDisplay?.neighborhood_name ?? 'Sin barrio asociado', disabled: true}],
-        category: [{value: null, disabled: this.isViewMode}, Validators.required],
-        subCategory : {value: null, disabled: this.isViewMode},
-        entities: [{value: [], disabled: this.isViewMode},],
+        category: [{value: null, disabled: (this.isViewMode && !this.isAnnotationFromUser)}, Validators.required],
+        subCategory : {value: null, disabled: (this.isViewMode && !this.isAnnotationFromUser)},
+        entities: [{value: [], disabled: (this.isViewMode && !this.isAnnotationFromUser)},],
         date: [{value: this.annotationForDisplay?.registration_date ?? '', disabled: true}],
         status: [{value: 'open',disabled: true}],
-        description: [{value: '', disabled: this.isViewMode}, Validators.required],
+        description: [{value: '', disabled: (this.isViewMode && !this.isAnnotationFromUser)}, Validators.required],
         images: [''],
       });
 
@@ -108,6 +102,8 @@ export class AnnotationForm implements OnInit{
       this.form.get('category')?.disable();
       this.form.get('subCategory')?.disable();
 
+      this.form.get('status')?.setValue(annotation.status);
+
       this.form.get('description')?.disable();
 
       this.form.get('entities')?.setValue(annotation.interestedParties);
@@ -135,7 +131,7 @@ export class AnnotationForm implements OnInit{
       this.form.get('description')?.enable();
       this.form.patchValue({
         neighborhood: null,
-        status: 'active',
+        status: 'open',
         description: null,
         images: null,
         category: null,
@@ -145,10 +141,30 @@ export class AnnotationForm implements OnInit{
       this.previews = [];
   }
 
+  private enableFormValues(){
+    if (this.isAnnotationFromUser){
+      this.form.get('category')?.enable();
+      this.form.get('subCategory')?.enable();
+      this.form.get('status')?.enable();
+      this.form.get('description')?.enable();
+    }
+    else {
+      this.form.get('status')?.enable();
+    }
+  }
+
   ngOnChanges(changes: SimpleChanges){
     if (changes['annotationForDisplay']){
       if (this.annotationForDisplay){
-        //To do: Categoría, entidades,
+        this.securityService.getUserIdInBackend().subscribe(userId =>{
+          if (userId === this.annotationForDisplay?.id_citizen){
+            this.isAnnotationFromUser = true;
+            this.enableFormValues();
+          }
+          else {
+            this.isAnnotationFromUser = false;
+          }
+        })
         this.isViewMode = true;
         if (this.form) {
           this.patchFormWithAnnotation(this.annotationForDisplay);
@@ -159,6 +175,7 @@ export class AnnotationForm implements OnInit{
       }
       else {
         this.cleanForm();
+        this.isAnnotationFromUser = false;
       }
     }
     if (changes['coordinates']){
@@ -189,6 +206,11 @@ export class AnnotationForm implements OnInit{
           confirmButtonText: 'Aceptar',
           confirmButtonColor: '#ef4444'
         });
+        return;
+      }
+
+      if (this.annotationForDisplay && !this.isViewMode) {
+        this.submitEditedAnnotation(this.annotationForDisplay, userId);
         return;
       }
 
@@ -250,13 +272,10 @@ export class AnnotationForm implements OnInit{
       images: files
     });
 
-    // limpiar previews anteriores (opcional)
     this.previews.forEach(url => URL.revokeObjectURL(url));
 
-    // crear nuevas previews
     this.previews = files.map(file => URL.createObjectURL(file));
 
-    // opcional: reset input
     input.value = '';
   }
 
@@ -274,68 +293,65 @@ export class AnnotationForm implements OnInit{
 
   }
 
-  submitAnnotation(annotation: Partial<Annotation>){
+  submitAnnotation(annotation: Partial<Annotation>) {
+    const rawCat = this.form.getRawValue().subCategory ?? this.form.getRawValue().category;
+    const categoryId = rawCat != null ? Number(rawCat) : undefined;
+    const entities: number[] = this.form.getRawValue().entities ?? [];
+    const files: File[] = this.form.getRawValue().images || [];
 
-    this.annotationService.createAnnotation(annotation).subscribe(newAnnotation=>{
-      const createdAnnotation = newAnnotation;
-      
-      const saveTasks = [];
-
-      // Determine category id (prefer subCategory if present). Ensure it's a valid number before creating.
-      const rawCat = this.form.getRawValue().subCategory ?? this.form.getRawValue().category;
-      if (!rawCat) {
-        Swal.fire({
-          title: 'Error',
-          text: 'Debe seleccionar una categoría',
-          icon: 'error'
-        });
-        return;
-      }
-      const categoryId = rawCat === null || rawCat === undefined || rawCat === '' ? undefined : Number(rawCat);
-      if (categoryId && !Number.isNaN(categoryId) && createdAnnotation.id_annotation) {
-        const annotationCategory: AnnotationCategory = {
-          id_annotation: createdAnnotation.id_annotation,
-          id_category: categoryId,
-        };
-
-        saveTasks.push(this.annotationCategoryService.create(annotationCategory));
-      } else {
-        console.warn('No valid category selected for annotation', createdAnnotation.id_annotation, rawCat);
-      }
-
-      const entities: number[] = this.form.getRawValue().entities ?? [];
-
-      entities.forEach(entity => {
-        if (!createdAnnotation.id_annotation) return;
-        const link: Partial<InterestedParty> = {
-          id_annotation: createdAnnotation.id_annotation,
-          id_entity: entity,
-        };
-
-        saveTasks.push(this.interestedPartyService.create(link));
-      });
-
-      const files: File[] = this.form.getRawValue().images || [];
-      files.forEach(file => {
-        if (!createdAnnotation.id_annotation) return;
-        const evidence: Partial<Evidence> = {
-          id_annotation: createdAnnotation.id_annotation,
-          file_type: file.type,
-          file_size: file.size,
-        };
-        saveTasks.push(this.evidenceService.create(evidence, file));
-      });
-
-      if (saveTasks.length > 0) {
-        forkJoin(saveTasks).subscribe(() => {
-          this.formSubmit.emit(newAnnotation);
-          this.cleanForm(); 
-        });
-      } else {
+    this.annotationFormService.submitAnnotation(
+      annotation, categoryId, entities, files,
+      (newAnnotation) => {
         this.formSubmit.emit(newAnnotation);
-        this.cleanForm(); 
+        this.cleanForm();
       }
-    });
+    );
+  }
 
+  onDelete(){
+    this.annotationService.delete(this.annotationForDisplay?.id_annotation as number).subscribe(() => this.formSubmit.emit(null));
+  }
+
+  onEdit() {
+    if (!this.annotationForDisplay) {
+      return;
+    }
+
+    if (this.isEditing) {
+      this.isEditing = false;
+      this.isViewMode = true;
+      this.patchFormWithAnnotation(this.annotationForDisplay);
+    }
+    else if (this.isViewMode) {
+      this.isViewMode = false;
+      this.isEditing = true;
+      this.enableFormValues();
+    }
+  }
+
+  private submitEditedAnnotation(annotation: AnnotationForDisplay, userId: number) {
+    if (this.form.invalid) return;
+
+    const rawCat = this.form.getRawValue().subCategory ?? this.form.getRawValue().category;
+    const categoryId = rawCat != null ? Number(rawCat) : undefined;
+    const entities: number[] = this.form.getRawValue().entities ?? [];
+
+    const updatedAnnotation: Annotation = {
+      description: this.form.value.description,
+      id_neighborhood: this.currentNeighborhood?.id_neighborhood,
+      id_citizen: userId,
+      latitude: annotation.latitude,
+      longitude: annotation.longitude,
+      status: this.form.getRawValue().status,
+    };
+
+    this.annotationFormService.submitEditedAnnotation(
+      annotation, updatedAnnotation, categoryId, entities,
+      (result) => {
+        this.formSubmit.emit(result);
+        this.isViewMode = true;
+        this.isEditing = false;
+      }
+    );
   }
 }

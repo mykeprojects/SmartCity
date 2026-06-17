@@ -38,4 +38,9 @@ export class InterestedPartyService {
       )
     );
   }
+
+  delete(interestedPartyId: number): Observable<void>{
+    return this.http.delete<void>(`${this.apiUrl}/${interestedPartyId}`);
+  }
+  
 }
