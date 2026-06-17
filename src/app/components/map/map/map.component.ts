@@ -171,6 +171,20 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
         if (found) {
           found.active = isAllowed;
+          found.annotation = annotationFetched;
+          found.marker.setIcon(createMarkerIcon(annotationFetched, this.annotationCategories, this.categories));
+          found.marker.unbindTooltip();
+          found.marker.bindTooltip(annotationFetched.description);
+
+          if (isAllowed) {
+            if (!this.map.hasLayer(found.marker)) {
+              found.marker.addTo(this.map);
+            }
+          } else {
+            if (this.map.hasLayer(found.marker)) {
+              this.map.removeLayer(found.marker);
+            }
+          }
         } else {
           const annotationMarker = this.createAnnotationMarker(annotationFetched);
 
