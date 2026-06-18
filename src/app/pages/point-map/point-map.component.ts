@@ -15,9 +15,8 @@ import * as L from 'leaflet';
 import { MapLocation } from 'src/app/models/territorial/map-location';
 import { MapMarker } from 'src/app/models/territorial/map-marker';
 
-
 @Component({
-  selector: 'app-map-picker',
+  selector: 'app-point-map',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './point-map.component.html',
@@ -34,6 +33,11 @@ export class PointMapComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() fitBounds = true;
   @Input() readonly = false;
   @Input() height = '320px';
+  
+  // Coordenadas iniciales configurables por el padre (Por defecto: Manizales)
+  @Input() defaultLat = 5.0703;
+  @Input() defaultLng = -75.5138;
+
   @Output() locationChange = new EventEmitter<MapLocation>();
   @Output() mapClick = new EventEmitter<MapLocation>();
   @Output() markerSelected = new EventEmitter<number | string>();
@@ -45,9 +49,6 @@ export class PointMapComponent implements AfterViewInit, OnChanges, OnDestroy {
   private polygonLayer?: L.LayerGroup;
   private resizeObserver?: ResizeObserver;
 
-  private readonly defaultLat = 5.0703;
-  private readonly defaultLng = -75.5138;
-
   ngAfterViewInit(): void {
     this.initMap();
     this.observeResize();
@@ -56,10 +57,10 @@ export class PointMapComponent implements AfterViewInit, OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges): void {
     if (!this.map) return;
 
+    // Corrección 1: Separar evaluaciones sin usar 'return' intermedio
     if (changes['markers'] || changes['polygon'] || changes['selectedMarkerId']) {
       this.renderMarkers();
       this.renderPolygon();
-      return;
     }
 
     if (changes['latitude'] || changes['longitude']) {
@@ -69,23 +70,30 @@ export class PointMapComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.resizeObserver?.disconnect();
+    this.cleanMapEvents();
     this.map?.remove();
   }
 
   private initMap(): void {
-    const lat = this.latitude ?? this.markers[0]?.latitude ?? this.defaultLat;
-    const lng = this.longitude ?? this.markers[0]?.longitude ?? this.defaultLng;
+    // Aseguramos el acceso seguro al primer marcador si existe
+    const primerMarcador = this.markers && this.markers.length > 0 ? this.markers[0] : null;
+    const lat = this.latitude ?? primerMarcador?.latitude ?? this.defaultLat;
+    const lng = this.longitude ?? primerMarcador?.longitude ?? this.defaultLng;
 
     this.map = L.map(this.mapContainer.nativeElement, {
       center: [lat, lng],
       zoom: 14,
+      zoomControl: false // 1. Desactivamos el control de zoom nativo en la izquierda
     });
+
+    // 2. Agregamos el control de zoom manualmente en la esquina superior derecha
+    L.control.zoom({ position: 'topright' }).addTo(this.map);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(this.map);
 
-    if (this.markers.length > 0) {
+    if (this.markers && this.markers.length > 0) {
       this.renderMarkers();
       this.renderPolygon();
       if (!this.readonly) {
@@ -98,15 +106,16 @@ export class PointMapComponent implements AfterViewInit, OnChanges, OnDestroy {
       this.marker = L.marker([lat, lng], { draggable: !this.readonly, icon }).addTo(this.map);
       this.bindSingleMarkerEvents();
     }
-
     setTimeout(() => this.map?.invalidateSize(), 250);
   }
 
   private renderMarkers(): void {
     if (!this.map) return;
 
+    this.cleanMapEvents(); // Corrección 3: Evitar fugas de eventos antiguos
     this.marker?.remove();
     this.marker = undefined;
+    
     this.markerLayer?.clearLayers();
     this.markerLayer?.remove();
     this.markerLayer = L.layerGroup().addTo(this.map);
@@ -120,6 +129,7 @@ export class PointMapComponent implements AfterViewInit, OnChanges, OnDestroy {
         draggable: !this.readonly,
         icon: this.createMarkerIcon(item, isSelected),
       });
+      
       if (item.label) {
         marker.bindPopup(item.label);
       }
@@ -135,7 +145,11 @@ export class PointMapComponent implements AfterViewInit, OnChanges, OnDestroy {
           });
         });
       }
-      marker.addTo(this.markerLayer!);
+      
+      // Corrección 5: Uso seguro sin operador de aserción forzada (!)
+      if (this.markerLayer) {
+        marker.addTo(this.markerLayer);
+      }
       bounds.push([item.latitude, item.longitude]);
     });
 
@@ -181,11 +195,15 @@ export class PointMapComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.map.on('click', (e: L.LeafletMouseEvent) => {
       const location = { latitude: e.latlng.lat, longitude: e.latlng.lng };
       this.mapClick.emit(location);
-      this.setPosition(location.latitude, location.longitude);
+      // Corrección 2: setPosition ahora no vuelve a emitir un evento duplicado aquí
+      this.setPosition(location.latitude, location.longitude, false);
     });
+    
     this.marker.on('dragend', () => {
-      const pos = this.marker!.getLatLng();
-      this.emitLocation(pos.lat, pos.lng);
+      if (this.marker) {
+        const pos = this.marker.getLatLng();
+        this.emitLocation(pos.lat, pos.lng);
+      }
     });
   }
 
@@ -214,17 +232,19 @@ export class PointMapComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.resizeObserver.observe(this.mapContainer.nativeElement);
   }
 
+  private cleanMapEvents(): void {
+    this.map?.off('click');
+  }
+
   private createMarkerIcon(marker?: MapMarker, selected = false): L.DivIcon {
     const label = marker?.label ?? (marker?.order != null ? String(marker.order) : '•');
     const estadoClass = selected ? 'is-selected' : 'is-normal';
 
     return L.divIcon({
       className: `custom-map-marker ${estadoClass}`,
-      // Envolvemos el label en el div que recibirá los estilos reales
       html: `<div class="marker-inner">${label}</div>`,
-      iconSize:[28, 28],
-      iconAnchor:[14,14],
+      iconSize:[28,28],
+      iconAnchor:[14,14]
     });
   }
-
 }

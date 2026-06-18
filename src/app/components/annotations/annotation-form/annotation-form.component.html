@@ -18,7 +18,8 @@
                 <mat-form-field class="w-full" appearance="outline">
                 <mat-label>Estado</mat-label>
                   <mat-select formControlName="status">
-                        <mat-option value="open">Activo</mat-option>
+                        <mat-option value="active">Activo</mat-option>
+                        <mat-option value="open">Abierto</mat-option>
                         <mat-option value="in_progress">En progreso</mat-option>
                         <mat-option value="solved">Resuelto</mat-option>
                     </mat-select>
@@ -96,7 +97,7 @@
                 </mat-form-field>
             </div>
 
-            @if (!isViewMode) {
+            @if (!isViewMode && !isEditing) {
                 <button mat-raised-button color="primary" type="button" (click)="fileInput.click()"> Adjuntar evidencias</button>
                 <input #fileInput type="file" multiple accept="image/*" hidden (change)="onFilesSelected($event)"/>
             }
@@ -110,6 +111,18 @@
             @if (!isViewMode) {
                 <div class="flex justify-end">
                     <button mat-raised-button color="primary" type="submit">Guardar</button>
+                </div>
+            }
+
+            @if (isAnnotationFromUser){
+                <div class="flex justify-end gap-2">
+                    @if (isEditing){
+                        <button mat-raised-button color="primary" type="button" (click)="onEdit()">Cancelar</button>
+                    }   
+                    @else {
+                        <button mat-raised-button color="primary" type="button" (click)="onEdit()">Editar</button>
+                    }
+                    <button mat-raised-button color="primary" type="button" (click)="onDelete()">Eliminar</button>
                 </div>
             }
         </mat-card-content>

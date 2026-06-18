@@ -1,0 +1,25 @@
+.admin-table-action {
+  flex: 1;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.admin-table-action--view {
+  background-color: #3b82f6;
+  color: #fff;
+}
+
+.admin-table-action--edit {
+  background-color: #facc15;
+  color: #000;
+}
+
+.admin-table-action--delete {
+  background-color: #ef4444;
+  color: #fff;
+}

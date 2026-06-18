@@ -3,25 +3,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { MapLocation } from 'src/app/models/territorial/map-location';
-
-interface NominatimResult {
-  lat: string;
-  lon: string;
-  display_name?: string;
-}
-
-interface NominatimReverseResult {
-  display_name?: string;
-  address?: {
-    road?: string;
-    house_number?: string;
-    suburb?: string;
-    neighbourhood?: string;
-    city?: string;
-    town?: string;
-    state?: string;
-  };
-}
+import { NominatimResult } from 'src/app/models/geocoding/nominatim-result';
+import { NominatimReverseResult } from 'src/app/models/geocoding/nominatim-reverse-result';
 
 @Injectable({ providedIn: 'root' })
 export class GeocodingService {

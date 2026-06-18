@@ -3,6 +3,7 @@ import { Evidence } from "../territorial/evidence";
 export class AnnotationForDisplay {
     description: string;
     id_annotation: number;
+    id_citizen: number;
     citizen_name: string;
     neighborhood_name: string;
     category?: number;

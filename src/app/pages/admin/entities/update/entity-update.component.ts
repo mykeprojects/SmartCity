@@ -4,7 +4,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Entity } from 'src/app/models/territorial/entity';
 import { EntityService } from 'src/app/services/territorial/entity.service';
 import { showApiError, showSuccess } from 'src/app/services/territorial/territorial-api.util';
-import { EntityFormComponent, EntityFormPayload } from '../components/entity-form/entity-form.component';
+import { EntityFormComponent } from '../components/entity-form/entity-form.component';
+import { EntityFormPayload } from 'src/app/models/admin/entity-form-payload';
 
 @Component({
   selector: 'app-entity-update',

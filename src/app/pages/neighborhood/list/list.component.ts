@@ -7,13 +7,14 @@ import { AnnotationService } from 'src/app/services/territorial/annotation.servi
 import { Neighborhood } from 'src/app/models/territorial/neighborhood';
 import { DynamicTableComponent } from 'src/app/components/ui/table/dynamic-table/dynamic-table.component';
 import { ColumnDef } from 'src/app/models/component-dynamic-table/column-def';
-import { ActionButton } from 'src/app/models/component-dynamic-table/action-button';
+import { ADMIN_TABLE_ACTIONS } from 'src/app/pages/admin/shared/admin-table-actions';
 import { TablePageEvent } from 'src/app/models/component-dynamic-table/table-page-event';
 import Swal from 'sweetalert2';
 import { Router } from '@angular/router';
 import { Point } from 'src/app/models/territorial/point';
 import { NeighborhoodToTable } from 'src/app/models/territorial/neighboorhoodToTable';
-import { forkJoin } from 'rxjs';
+import { forkJoin, NEVER } from 'rxjs';
+import { isPagedResponse } from 'src/app/services/territorial/territorial-api.util';
 
 @Component({
   selector: 'app-list',
@@ -26,6 +27,7 @@ export class ListComponent implements OnInit {
   neighborhoods: Neighborhood[] = [];
   neighborhoodsToList: NeighborhoodToTable[] = [];
   loading = false;
+  id_points: number[] = []
 
   page = 1;
   pageSize = 5;
@@ -41,20 +43,7 @@ export class ListComponent implements OnInit {
     {header: 'Estado', key: 'status'}
   ]
 
-  actions: ActionButton[] = [
-    {
-      id: 'edit',
-      label: 'Editar',
-      icon: 'heroPencil',
-      class: 'flex-1 px-2 py-1 rounded bg-yellow-400 text-black cursor-pointer flex items-center justify-center gap-1'
-    },
-    {
-      id: 'delete',
-      label: 'Eliminar',
-      icon: 'heroTrash',
-      class: 'flex-1 px-2 py-1 rounded bg-red-500 text-white cursor-pointer flex items-center justify-center gap-1'
-    }
-  ]
+  actions = ADMIN_TABLE_ACTIONS.filter((action) => action.id !== 'view');
 
   constructor(private neighborhoodService: NeighborhoodService, 
               private router: Router,
@@ -152,12 +141,34 @@ export class ListComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if(result.isConfirmed){
-        this.neighborhoodService.delete(neighborhood.id_neighborhood ?? 0).subscribe({
-          next: () => {
-            Swal.fire('Eliminado', `El barrio "${neighborhood.name}" ha sido eliminado`, 'success');
-            this.loadNeighborhoods(); // Agregados los paréntesis () que faltaban
+        const neighborhood_id = neighborhood.id_neighborhood || 0;
+        this.pointService.searchByFilter(neighborhood_id).subscribe({
+          next: (points) => {
+            if(isPagedResponse(points)){
+              if(points.items.length !== 0){
+
+              } else {
+                this.neighborhoodService.delete(neighborhood.id_neighborhood ?? 0).subscribe({
+                  next: () => {
+                  Swal.fire('Eliminado', `El barrio "${neighborhood.name}" ha sido eliminado`, 'success');
+                  this.loadNeighborhoods(); // Agregados los paréntesis () que faltaban
+                  }
+                });
+              }
+            }else{
+              if(points.length !== 0){
+                Swal.fire('No se puede eliminar el barrio, tiene puntos asociados');
+              } else {
+                this.neighborhoodService.delete(neighborhood.id_neighborhood ?? 0).subscribe({
+                    next: () => {
+                    Swal.fire('Eliminado', `El barrio "${neighborhood.name}" ha sido eliminado`, 'success');
+                    this.loadNeighborhoods(); // Agregados los paréntesis () que faltaban
+                    }
+                });
+              }
+            }
           }
-        });
+        })
       }
     });
   }

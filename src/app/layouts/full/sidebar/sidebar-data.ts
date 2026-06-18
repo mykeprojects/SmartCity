@@ -1,4 +1,4 @@
-import { NavItem } from './nav-item/nav-item';
+import { NavItem } from 'src/app/models/layout/nav-item';
 
 export const navItems: NavItem[] = [
   {
@@ -17,7 +17,7 @@ export const navItems: NavItem[] = [
   {
     displayName: 'Mapa',
     iconName: 'material-symbols:map-outline',
-    route: '/map/tracking',
+    route: '/map/overview',
   },
 
   {

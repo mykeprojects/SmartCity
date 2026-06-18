@@ -25,7 +25,7 @@ export class AppChart implements OnChanges {
       redrawOnWindowResize: true,
       redrawOnParentResize: true,
       chart: {
-        width: '80%',
+        width: '60%',
         type: this.report.type,
       },
       labels: this.report.labels,

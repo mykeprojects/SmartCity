@@ -36,6 +36,10 @@
                                 Editar calificación
                             }
                         </button>
+
+                        @if (hasCommented){
+                            <button mat-raised-button color="primary" type="button" (click)="onDelete()">Eliminar</button>
+                        }
                     </div>
                 </mat-card-content>
             </mat-card>

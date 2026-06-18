@@ -57,4 +57,12 @@ export class AnnotationCategoryService {
       })
     );
   }
+
+  delete(annotationCategoryId: number): Observable<void>{
+    return this.http.delete<void>(`${this.apiUrl}/${annotationCategoryId}`);
+  }
+
+  update(updatedAnnotationCategory: AnnotationCategory): Observable<AnnotationCategory>{
+    return this.http.put<AnnotationCategory>(`${this.apiUrl}/${updatedAnnotationCategory.id_annotation_category}`,updatedAnnotationCategory);
+  }
 }

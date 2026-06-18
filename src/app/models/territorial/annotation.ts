@@ -6,5 +6,5 @@ export interface Annotation {
   latitude: number;
   longitude: number;
   status: string;
-  registration_date?: string;
+  registration_date?: string | Date;
 }
