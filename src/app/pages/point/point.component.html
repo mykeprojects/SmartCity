@@ -20,6 +20,7 @@
       <div class="panel__section">
         <h2>Selección de barrio</h2>
         <label class="searchbox">
+          <span class="searchbox__icon">⌕</span>
           <input
             [(ngModel)]="searchTerm"
             (keyup.enter)="searchNeighborhoods()"
@@ -84,7 +85,7 @@
       </div>
 
       <div class="map-stage">
-        <app-point-map
+        <app-map-picker
           class="map-stage__interactive"
           [height]="'calc(100% - 16px)'"
           [markers]="pointMarkers"
@@ -95,7 +96,7 @@
           (mapClick)="onMapClick($event)"
           (markerSelected)="onMarkerSelected($event)"
           (markerMoved)="onMarkerMoved($event)"
-        ></app-point-map>
+        ></app-map-picker>
 
         <div class="map-overlay-card">
           <strong>{{ selectedPoint ? ('Punto #' + (selectedPoint.order ?? selectedPoint.id_point)) : 'Sin punto activo' }}</strong>
@@ -198,6 +199,8 @@
           <p class="empty-state">Selecciona un punto del mapa para editar sus coordenadas.</p>
         </ng-template>
       </div>
+
+      <!-- Preview map removed -->
     </aside>
   </section>
 </div>
